@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>StandupBot</title>
+  <title>DailyDash</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -666,7 +666,7 @@
 <div id="who-screen" class="who-screen">
   <div class="who-card">
     <div class="who-logo">📋</div>
-    <div class="who-title">StandupBot</div>
+    <div class="who-title">DailyDash</div>
     <div class="who-sub">// select your name to continue</div>
     <div class="who-members" id="who-members-list">
       <div class="who-empty">No team members added yet.<br/>Ask your admin to set up the team.</div>
@@ -683,7 +683,7 @@
 <nav>
   <div class="logo">
     <div class="logo-mark">📋</div>
-    StandupBot
+    DailyDash
   </div>
   <div class="nav-right">
     <div class="nav-tabs">
@@ -793,7 +793,7 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Standup Questions</h2></div>
+      <div class="card-header"><h2>Daily Tracker Questions</h2></div>
       <div class="field">
         <label>Question 1</label>
         <input type="text" id="q1" value="What did you work on yesterday?" />
@@ -831,7 +831,7 @@
       <button class="btn btn-navy btn-sm" onclick="generateLinks()">Generate Links</button>
     </div>
     <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px; font-family:'IBM Plex Mono',monospace;">
-      Share these unique links with each team member for today's standup.
+      Share these unique links with each team member for today's check-ins.
     </p>
     <div id="links-list">
       <div class="empty-state" style="padding:30px">
@@ -856,8 +856,8 @@
     <textarea id="appsScriptCode" readonly class="code-block" style="height:200px; border:none; width:100%">function doPost(e) {
   try {
     var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = spreadsheet.getSheetByName("Standups");
-    if (!sheet) { sheet = spreadsheet.insertSheet("Standups"); }
+    var sheet = spreadsheet.getSheetByName("CheckIns");
+    if (!sheet) { sheet = spreadsheet.insertSheet("CheckIns"); }
     if (sheet.getLastRow() === 0) {
       sheet.appendRow(["Timestamp","Name","Email","Q1 - Yesterday","Q2 - Today","Q3 - Blockers"]);
       sheet.getRange(1,1,1,6).setFontWeight("bold").setBackground("#1a56a0").setFontColor("#ffffff");
@@ -870,7 +870,7 @@
   }
 }
 function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({status:"ok",message:"StandupBot connected!"})).setMimeType(ContentService.MimeType.JSON);
+  return ContentService.createTextOutput(JSON.stringify({status:"ok",message:"DailyDash connected!"})).setMimeType(ContentService.MimeType.JSON);
 }</textarea>
     <button class="btn btn-secondary btn-sm" onclick="copyScript()" style="margin-top:10px">Copy Code</button>
   </div>
@@ -886,8 +886,8 @@ function doGet(e) {
       <div class="chat-topbar">
         <div class="bot-avatar-wrap">🤖</div>
         <div>
-          <div class="bot-info-name" id="chat-greeting">StandupBot</div>
-          <div class="bot-info-sub">Daily standup · 3 questions</div>
+          <div class="bot-info-name" id="chat-greeting">FE DailyTrackerBot</div>
+          <div class="bot-info-sub">Daily Progress · 3 questions</div>
         </div>
       </div>
 
@@ -907,7 +907,7 @@ function doGet(e) {
 
       <div class="complete-panel hidden" id="complete-state">
         <div class="complete-icon">✓</div>
-        <div class="complete-title">Standup Complete</div>
+        <div class="complete-title">Check-In Complete</div>
         <div class="complete-sub">Your responses have been recorded. See you tomorrow.</div>
         <div id="sheet-save-status" style="margin-bottom:18px; font-size:0.8rem; font-family:'IBM Plex Mono',monospace; color:var(--text-muted)"></div>
         <button class="btn btn-secondary" onclick="resetCheckin()">Submit Again</button>
@@ -920,8 +920,8 @@ function doGet(e) {
      DASHBOARD PAGE
 ════════════════════════════════════════ -->
 <div class="page" id="page-dashboard">
-  <div class="page-title">Response Dashboard</div>
-  <div class="page-subtitle">// today's standup submissions</div>
+  <div class="page-title">FE Daily Dashboard</div>
+  <div class="page-subtitle">// Today's Check-Ins</div>
 
   <div class="grid-3" style="margin-bottom:24px">
     <div class="stat-card">
@@ -1131,6 +1131,14 @@ function doGet(e) {
     saveState(); renderMembers(); toast('Member removed');
   }
 
+  function clearCheckin(memberId) {
+    const member = state.members.find(m => m.id === memberId);
+    if (!member) return;
+    if (!confirm(`Clear today's check-in for ${member.name}? They will be able to resubmit.`)) return;
+    state.responses = state.responses.filter(r => !(r.email === member.email && isToday(r.timestamp)));
+    saveState(); renderMembers(); toast(`✓ Check-in cleared for ${member.name}`);
+  }
+
   function changeRole(id, newRole) {
     const m = state.members.find(m => m.id === id);
     if (m) { m.role = newRole; saveState(); renderMembers(); toast(`Role updated to ${newRole}`); }
@@ -1164,6 +1172,7 @@ function doGet(e) {
               <option value="admin"   ${m.role==='admin'   ?'selected':''}>👑 Admin</option>
             </select>
             <span class="badge ${responded ? 'badge-done' : 'badge-pending'}">${responded ? '✓ Done' : 'Pending'}</span>
+            ${responded ? `<button class="btn btn-secondary btn-sm" onclick="clearCheckin('${m.id}')" title="Allow resubmission">↺ Clear</button>` : ''}
             <button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
           </div>
         </div>`;
@@ -1254,12 +1263,12 @@ function doGet(e) {
     document.getElementById('complete-state').classList.add('hidden');
     document.getElementById('chat-input-row').classList.remove('hidden');
     document.getElementById('chat-messages').innerHTML = '';
-    document.getElementById('chat-greeting').textContent = `${currentUser.name}'s Standup`;
+    document.getElementById('chat-greeting').textContent = `${currentUser.name}'s Daily Check-In`;
     updateProgress();
 
     const alreadyDone = state.responses.some(r => r.email === currentUser.email && isToday(r.timestamp));
     if (alreadyDone) {
-      addBotMsg(`Hey ${currentUser.name}! You've already submitted your standup today. ✓`);
+      addBotMsg(`Hey ${currentUser.name}! You've already submitted your response today. ✓`);
       document.getElementById('chat-input-row').classList.add('hidden');
       document.getElementById('complete-state').classList.remove('hidden');
       document.getElementById('sheet-save-status').textContent = '✓ Already submitted today';
@@ -1267,7 +1276,7 @@ function doGet(e) {
     }
 
     setTimeout(() => {
-      addBotMsg(`Good ${getTimeOfDay()}, ${currentUser.name}. Ready for your daily standup?`);
+      addBotMsg(`Good ${getTimeOfDay()}, ${currentUser.name}. Ready for your today's check-in?`);
       setTimeout(() => askQuestion(0), 1000);
     }, 300);
   }
@@ -1306,7 +1315,7 @@ function doGet(e) {
       timestamp: new Date().toISOString()
     };
     state.responses.push(response); saveState();
-    addBotMsg('Thank you. Your standup has been recorded. Have a productive day! 🎉');
+    addBotMsg('Thank you. Your responses have been recorded. Have a productive day! 🎉');
     document.getElementById('chat-input-row').classList.add('hidden');
     updateProgress();
     setTimeout(() => { document.getElementById('complete-state').classList.remove('hidden'); sendToSheets(response); }, 900);
@@ -1334,7 +1343,7 @@ function doGet(e) {
     const msgs = document.getElementById('chat-messages');
     const d = document.createElement('div');
     d.className = 'msg msg-bot';
-    d.innerHTML = `<div class="msg-sender">StandupBot</div><div class="bubble">${text}</div>`;
+    d.innerHTML = `<div class="msg-sender">DailyDash</div><div class="bubble">${text}</div>`;
     msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -1350,7 +1359,7 @@ function doGet(e) {
     const msgs = document.getElementById('chat-messages');
     const d = document.createElement('div');
     d.id = 'typing-wrap'; d.className = 'typing-wrap';
-    d.innerHTML = `<div class="msg-sender">StandupBot</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    d.innerHTML = `<div class="msg-sender">DailyDash</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
     msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
   }
 
@@ -1410,7 +1419,7 @@ function doGet(e) {
     const csv = [headers,...rows].map(row => row.map(c=>`"${c}"`).join(',')).join('\n');
     const a = document.createElement('a');
     a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download = `standup-${new Date().toISOString().slice(0,10)}.csv`;
+    a.download = `Check-ins-${new Date().toISOString().slice(0,10)}.csv`;
     a.click(); toast('CSV exported');
   }
 
