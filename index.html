@@ -1,0 +1,1446 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>StandupBot — Daily Standup</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
+  <style>
+    :root {
+      --bg:         #f0f2f5;
+      --white:      #ffffff;
+      --surface:    #f7f8fa;
+      --border:     #dde1e7;
+      --border-mid: #c5ccd6;
+
+      --navy:       #0f2d5c;
+      --blue:       #1a56a0;
+      --blue-mid:   #2563c4;
+      --blue-light: #e8eef8;
+      --blue-pale:  #f0f4fc;
+
+      --slate:      #4a5568;
+      --slate-mid:  #6b7a90;
+      --slate-light:#8896a8;
+
+      --success:    #1a7f5a;
+      --success-bg: #e8f5ef;
+      --warn:       #b45309;
+      --warn-bg:    #fef3e2;
+      --danger:     #c0392b;
+
+      --text:       #1a2332;
+      --text-mid:   #3d4f63;
+      --text-muted: #6b7a90;
+
+      --shadow-sm:  0 1px 3px rgba(15,45,92,0.08), 0 1px 2px rgba(15,45,92,0.04);
+      --shadow-md:  0 4px 12px rgba(15,45,92,0.10), 0 2px 4px rgba(15,45,92,0.06);
+      --shadow-lg:  0 12px 32px rgba(15,45,92,0.13), 0 4px 8px rgba(15,45,92,0.07);
+
+      --radius-sm:  6px;
+      --radius-md:  10px;
+      --radius-lg:  14px;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      font-family: 'IBM Plex Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      font-size: 14px;
+      line-height: 1.6;
+    }
+
+    /* ── NAV ── */
+    nav {
+      background: var(--navy);
+      padding: 0 40px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      height: 60px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      box-shadow: 0 2px 8px rgba(15,45,92,0.25);
+    }
+
+    .logo {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+      font-size: 1.2rem;
+      font-weight: 700;
+      letter-spacing: -0.01em;
+    }
+
+    .logo-mark {
+      width: 30px; height: 30px;
+      background: var(--blue-mid);
+      border-radius: 8px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.9rem;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+    }
+
+    .nav-tabs {
+      display: flex;
+      gap: 2px;
+    }
+
+    .nav-tab {
+      padding: 8px 20px;
+      border-radius: var(--radius-sm);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.82rem;
+      font-weight: 500;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      border: none;
+      background: transparent;
+      color: rgba(255,255,255,0.55);
+      transition: all 0.18s;
+    }
+
+    .nav-tab:hover:not(.active) {
+      background: rgba(255,255,255,0.08);
+      color: rgba(255,255,255,0.85);
+    }
+
+    .nav-tab.active {
+      background: var(--blue-mid);
+      color: #fff;
+      font-weight: 600;
+    }
+
+    /* ── PAGES ── */
+    .page { display: none; padding: 36px 40px; animation: fadeUp 0.25s ease; }
+    .page.active { display: block; }
+
+    @keyframes fadeUp {
+      from { opacity: 0; transform: translateY(6px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    /* ── TYPOGRAPHY ── */
+    .page-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.7rem;
+      font-weight: 700;
+      color: var(--navy);
+      letter-spacing: -0.02em;
+      margin-bottom: 4px;
+    }
+
+    .page-subtitle {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--text-muted);
+      margin-bottom: 28px;
+      letter-spacing: 0.02em;
+    }
+
+    h2 {
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.9rem;
+      font-weight: 600;
+      color: var(--navy);
+      letter-spacing: 0.01em;
+      margin-bottom: 14px;
+    }
+
+    /* ── CARDS ── */
+    .card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 18px;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .card-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 18px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .card-header h2 { margin: 0; }
+
+    /* ── SHEET CONFIG BANNER ── */
+    .sheet-banner {
+      background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
+      border-radius: var(--radius-lg);
+      padding: 24px;
+      margin-bottom: 18px;
+      color: #fff;
+      box-shadow: var(--shadow-md);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .sheet-banner::after {
+      content: '';
+      position: absolute;
+      right: -30px; top: -30px;
+      width: 160px; height: 160px;
+      border-radius: 50%;
+      background: rgba(255,255,255,0.04);
+    }
+
+    .sheet-banner h2 { color: #fff; margin: 0; font-size: 1rem; }
+    .sheet-banner-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 18px; font-family: 'IBM Plex Mono', monospace; }
+
+    .sheet-status-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 0.78rem;
+      font-family: 'IBM Plex Mono', monospace;
+      color: rgba(255,255,255,0.7);
+      margin-bottom: 16px;
+    }
+
+    .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+    .dot-green  { background: #34d399; box-shadow: 0 0 6px #34d399; }
+    .dot-yellow { background: #fbbf24; }
+    .dot-red    { background: #f87171; }
+
+    /* ── INPUTS ── */
+    .field { margin-bottom: 14px; }
+
+    label {
+      display: block;
+      font-size: 0.74rem;
+      font-weight: 600;
+      letter-spacing: 0.06em;
+      text-transform: uppercase;
+      color: var(--slate);
+      margin-bottom: 5px;
+    }
+
+    input, textarea, select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+      color: var(--text);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-size: 0.88rem;
+      outline: none;
+      transition: border-color 0.15s, box-shadow 0.15s;
+    }
+
+    input:focus, textarea:focus, select:focus {
+      border-color: var(--blue-mid);
+      box-shadow: 0 0 0 3px rgba(37,99,196,0.12);
+      background: var(--white);
+    }
+
+    .sheet-banner input {
+      background: rgba(255,255,255,0.1);
+      border-color: rgba(255,255,255,0.2);
+      color: #fff;
+    }
+
+    .sheet-banner input::placeholder { color: rgba(255,255,255,0.4); }
+    .sheet-banner input:focus {
+      background: rgba(255,255,255,0.15);
+      border-color: rgba(255,255,255,0.5);
+      box-shadow: 0 0 0 3px rgba(255,255,255,0.1);
+    }
+
+    .sheet-banner label { color: rgba(255,255,255,0.6); }
+
+    textarea { resize: vertical; min-height: 80px; }
+
+    /* ── BUTTONS ── */
+    .btn {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 9px 18px;
+      border-radius: var(--radius-sm);
+      font-family: 'IBM Plex Sans', sans-serif;
+      font-weight: 600;
+      font-size: 0.82rem;
+      letter-spacing: 0.02em;
+      cursor: pointer;
+      border: none;
+      transition: all 0.15s;
+      white-space: nowrap;
+    }
+
+    .btn-primary {
+      background: var(--blue-mid);
+      color: #fff;
+      box-shadow: 0 1px 3px rgba(37,99,196,0.3);
+    }
+    .btn-primary:hover { background: #1d4db5; box-shadow: 0 2px 8px rgba(37,99,196,0.35); transform: translateY(-1px); }
+
+    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy:hover { background: #0a2040; transform: translateY(-1px); }
+
+    .btn-secondary {
+      background: var(--white);
+      color: var(--slate);
+      border: 1px solid var(--border);
+    }
+    .btn-secondary:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-pale); }
+
+    .btn-ghost-white {
+      background: rgba(255,255,255,0.12);
+      color: rgba(255,255,255,0.85);
+      border: 1px solid rgba(255,255,255,0.2);
+    }
+    .btn-ghost-white:hover { background: rgba(255,255,255,0.2); color: #fff; }
+
+    .btn-danger { background: #fff0ef; color: var(--danger); border: 1px solid #fccfcc; }
+    .btn-danger:hover { background: var(--danger); color: #fff; }
+
+    .btn-sm { padding: 6px 13px; font-size: 0.78rem; }
+    .btn-full { width: 100%; justify-content: center; }
+
+    /* ── GRID ── */
+    .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
+    .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+    /* ── STAT CARDS ── */
+    .stat-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px 22px;
+      box-shadow: var(--shadow-sm);
+      position: relative;
+      overflow: hidden;
+    }
+
+    .stat-card::before {
+      content: '';
+      position: absolute;
+      top: 0; left: 0; right: 0;
+      height: 3px;
+      background: var(--blue-mid);
+    }
+
+    .stat-card.navy::before { background: var(--navy); }
+    .stat-card.slate::before { background: var(--slate); }
+
+    .stat-value {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.4rem;
+      font-weight: 700;
+      color: var(--navy);
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .stat-label {
+      font-size: 0.75rem;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 0.04em;
+      text-transform: uppercase;
+    }
+
+    /* ── MEMBER ROWS ── */
+    .member-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 12px 14px;
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      margin-bottom: 8px;
+      background: var(--surface);
+      transition: all 0.15s;
+    }
+
+    .member-row:hover {
+      border-color: var(--blue-mid);
+      background: var(--blue-pale);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .member-info { display: flex; align-items: center; gap: 12px; }
+
+    .avatar {
+      width: 36px; height: 36px;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-weight: 700;
+      font-size: 0.78rem;
+      color: #fff;
+      flex-shrink: 0;
+      letter-spacing: 0.05em;
+    }
+
+    .member-name  { font-weight: 600; font-size: 0.88rem; color: var(--text); }
+    .member-email { font-size: 0.75rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
+
+    /* ── BADGES ── */
+    .badge {
+      padding: 3px 10px;
+      border-radius: 20px;
+      font-size: 0.7rem;
+      font-weight: 600;
+      font-family: 'IBM Plex Mono', monospace;
+      letter-spacing: 0.03em;
+    }
+
+    .badge-done    { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+    .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid #fde68a; }
+    .badge-waiting { background: var(--blue-light); color: var(--blue); border: 1px solid #bfdbfe; }
+
+    /* ── LINK BOX ── */
+    .link-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-sm);
+      padding: 9px 12px;
+    }
+
+    .link-text {
+      flex: 1;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: var(--blue);
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+
+    /* ── DIVIDER ── */
+    .divider { height: 1px; background: var(--border); margin: 20px 0; }
+
+    /* ── SECTION HEADER ── */
+    .section-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 14px;
+    }
+
+    .section-header h2 { margin: 0; }
+
+    /* ── TAG ── */
+    .tag {
+      display: inline-block;
+      padding: 2px 8px;
+      background: var(--blue-light);
+      color: var(--blue);
+      border-radius: 4px;
+      font-size: 0.7rem;
+      font-family: 'IBM Plex Mono', monospace;
+      font-weight: 500;
+    }
+
+    /* ══════════════════════════════════════
+       CHECK-IN / CHAT
+    ══════════════════════════════════════ */
+    .chat-wrapper {
+      max-width: 640px;
+      margin: 0 auto;
+    }
+
+    .chat-topbar {
+      background: var(--navy);
+      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+      padding: 18px 24px;
+      display: flex;
+      align-items: center;
+      gap: 14px;
+      box-shadow: 0 2px 8px rgba(15,45,92,0.2);
+    }
+
+    .bot-avatar-wrap {
+      width: 44px; height: 44px;
+      background: var(--blue-mid);
+      border-radius: 12px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.3rem;
+      flex-shrink: 0;
+      box-shadow: 0 0 0 2px rgba(255,255,255,0.15);
+    }
+
+    .bot-info-name {
+      font-weight: 600;
+      font-size: 0.95rem;
+      color: #fff;
+      font-family: 'Playfair Display', serif;
+    }
+
+    .bot-info-sub {
+      font-size: 0.73rem;
+      color: rgba(255,255,255,0.5);
+      font-family: 'IBM Plex Mono', monospace;
+    }
+
+    .progress-row {
+      background: var(--white);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      padding: 10px 20px;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    .progress-label {
+      font-size: 0.72rem;
+      font-family: 'IBM Plex Mono', monospace;
+      color: var(--text-muted);
+      white-space: nowrap;
+    }
+
+    .progress-track {
+      flex: 1;
+      height: 4px;
+      background: var(--border);
+      border-radius: 2px;
+      overflow: hidden;
+    }
+
+    .progress-fill {
+      height: 100%;
+      background: linear-gradient(90deg, var(--blue-mid), var(--navy));
+      border-radius: 2px;
+      transition: width 0.5s cubic-bezier(0.4,0,0.2,1);
+    }
+
+    .chat-body {
+      background: var(--surface);
+      border-left: 1px solid var(--border);
+      border-right: 1px solid var(--border);
+      min-height: 340px;
+      max-height: 400px;
+      overflow-y: auto;
+      padding: 20px;
+      scroll-behavior: smooth;
+    }
+
+    .chat-body::-webkit-scrollbar { width: 4px; }
+    .chat-body::-webkit-scrollbar-track { background: transparent; }
+    .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
+
+    .msg { margin-bottom: 14px; animation: msgIn 0.25s ease; }
+
+    @keyframes msgIn {
+      from { opacity: 0; transform: translateY(5px); }
+      to   { opacity: 1; transform: translateY(0); }
+    }
+
+    .msg-sender {
+      font-size: 0.7rem;
+      font-weight: 600;
+      letter-spacing: 0.05em;
+      text-transform: uppercase;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      margin-bottom: 4px;
+    }
+
+    .msg-bot .bubble {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 2px 12px 12px 12px;
+      padding: 11px 15px;
+      display: inline-block;
+      max-width: 85%;
+      font-size: 0.88rem;
+      line-height: 1.65;
+      color: var(--text);
+      box-shadow: var(--shadow-sm);
+    }
+
+    .msg-user { text-align: right; }
+
+    .msg-user .bubble {
+      background: var(--navy);
+      color: #fff;
+      border-radius: 12px 2px 12px 12px;
+      padding: 11px 15px;
+      display: inline-block;
+      max-width: 85%;
+      font-size: 0.88rem;
+      font-weight: 500;
+      line-height: 1.65;
+      box-shadow: 0 2px 8px rgba(15,45,92,0.2);
+    }
+
+    .msg-user .msg-sender { text-align: right; color: var(--slate-mid); }
+
+    .typing-wrap { margin-bottom: 14px; }
+    .typing-bubble {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 2px 12px 12px 12px;
+      padding: 10px 14px;
+      display: inline-flex;
+      gap: 5px;
+      align-items: center;
+      box-shadow: var(--shadow-sm);
+    }
+
+    .typing-dot {
+      width: 6px; height: 6px;
+      background: var(--slate-light);
+      border-radius: 50%;
+      animation: typeBounce 1.2s ease-in-out infinite;
+    }
+    .typing-dot:nth-child(2) { animation-delay: 0.2s; }
+    .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+
+    @keyframes typeBounce {
+      0%, 100% { transform: translateY(0); opacity: 0.4; }
+      50%       { transform: translateY(-4px); opacity: 1; }
+    }
+
+    .chat-footer {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-top: none;
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: 14px 16px;
+      display: flex;
+      gap: 10px;
+      box-shadow: 0 4px 12px rgba(15,45,92,0.08);
+    }
+
+    .chat-footer input {
+      flex: 1;
+      border-radius: var(--radius-sm);
+      padding: 10px 14px;
+      font-size: 0.88rem;
+    }
+
+    /* ── COMPLETE STATE ── */
+    .complete-panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
+      padding: 40px 32px;
+      text-align: center;
+    }
+
+    .complete-icon {
+      width: 64px; height: 64px;
+      background: var(--success-bg);
+      border: 2px solid #a7f3d0;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.6rem;
+      margin: 0 auto 18px;
+      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
+    }
+
+    @keyframes popIn {
+      from { transform: scale(0); opacity: 0; }
+      to   { transform: scale(1); opacity: 1; }
+    }
+
+    .complete-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.4rem;
+      color: var(--navy);
+      margin-bottom: 8px;
+    }
+
+    .complete-sub {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      margin-bottom: 20px;
+    }
+
+    /* ── MEMBER SELECTOR ── */
+    .selector-panel {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 32px;
+      text-align: center;
+      box-shadow: var(--shadow-md);
+    }
+
+    .selector-icon {
+      width: 56px; height: 56px;
+      background: var(--blue-light);
+      border-radius: 14px;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem;
+      margin: 0 auto 18px;
+    }
+
+    .selector-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.3rem;
+      color: var(--navy);
+      margin-bottom: 6px;
+    }
+
+    .selector-sub {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      font-family: 'IBM Plex Mono', monospace;
+      margin-bottom: 22px;
+    }
+
+    /* ── RESPONSE CARDS ── */
+    .response-card {
+      background: var(--white);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 20px;
+      margin-bottom: 14px;
+      box-shadow: var(--shadow-sm);
+      transition: box-shadow 0.15s;
+    }
+
+    .response-card:hover { box-shadow: var(--shadow-md); }
+
+    .response-meta {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      margin-bottom: 16px;
+      padding-bottom: 14px;
+      border-bottom: 1px solid var(--border);
+    }
+
+    .response-name { font-weight: 600; font-size: 0.92rem; color: var(--navy); }
+    .response-email { font-family: 'IBM Plex Mono', monospace; font-size: 0.73rem; color: var(--text-muted); }
+    .response-time { font-family: 'IBM Plex Mono', monospace; font-size: 0.73rem; color: var(--text-muted); }
+
+    .qa-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
+
+    .qa-item {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius-md);
+      padding: 12px;
+    }
+
+    .qa-q {
+      font-size: 0.68rem;
+      color: var(--blue);
+      font-family: 'IBM Plex Mono', monospace;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 6px;
+      font-weight: 500;
+    }
+
+    .qa-a { font-size: 0.85rem; color: var(--text); line-height: 1.5; }
+
+    /* ── CODE BLOCK ── */
+    .code-block {
+      background: #0f1923;
+      border-radius: var(--radius-md);
+      padding: 16px;
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem;
+      color: #7dd3fc;
+      line-height: 1.7;
+      overflow-x: auto;
+      margin-top: 10px;
+    }
+
+    .step-list { counter-reset: steps; }
+    .step-item {
+      display: flex;
+      gap: 12px;
+      padding: 10px 0;
+      border-bottom: 1px solid var(--border);
+      align-items: flex-start;
+      font-size: 0.85rem;
+    }
+    .step-item:last-child { border-bottom: none; }
+    .step-num {
+      width: 22px; height: 22px;
+      background: var(--navy);
+      color: #fff;
+      border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      font-size: 0.7rem;
+      font-weight: 700;
+      flex-shrink: 0;
+      margin-top: 1px;
+    }
+
+    /* ── EMPTY STATE ── */
+    .empty-state {
+      text-align: center;
+      padding: 50px 20px;
+      color: var(--text-muted);
+    }
+    .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.35; }
+    .empty-text { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
+
+    /* ── TOAST ── */
+    .toast {
+      position: fixed;
+      bottom: 28px; right: 28px;
+      background: var(--navy);
+      color: #fff;
+      padding: 11px 20px;
+      border-radius: var(--radius-md);
+      font-size: 0.83rem;
+      font-weight: 500;
+      box-shadow: var(--shadow-lg);
+      transform: translateY(80px);
+      opacity: 0;
+      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
+      z-index: 9999;
+      border-left: 3px solid var(--blue-mid);
+    }
+    .toast.show { transform: translateY(0); opacity: 1; }
+
+    /* ── UTILS ── */
+    .hidden { display: none !important; }
+    .flex-row { display: flex; gap: 10px; align-items: center; }
+
+    @media (max-width: 768px) {
+      nav { padding: 0 16px; }
+      .page { padding: 20px 16px; }
+      .grid-2, .grid-3, .qa-grid { grid-template-columns: 1fr; }
+      .page-title { font-size: 1.4rem; }
+    }
+  </style>
+</head>
+<body>
+
+<!-- NAV -->
+<nav>
+  <div class="logo">
+    <div class="logo-mark">📋</div>
+    StandupBot
+  </div>
+  <div class="nav-tabs">
+    <button class="nav-tab active" onclick="showPage('admin', this)">Admin</button>
+    <button class="nav-tab" onclick="showPage('checkin', this)">Check-in</button>
+    <button class="nav-tab" onclick="showPage('dashboard', this)">Dashboard</button>
+  </div>
+</nav>
+
+<div class="toast" id="toast"></div>
+
+<!-- ═══════════════════════════════════════
+     ADMIN PAGE
+════════════════════════════════════════ -->
+<div class="page active" id="page-admin">
+  <div class="page-title">Team Administration</div>
+  <div class="page-subtitle">// configure members, questions & storage</div>
+
+  <!-- Google Sheets Banner -->
+  <div class="sheet-banner">
+    <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+      <h2>Google Sheets Integration</h2>
+      <div class="sheet-status-row" style="margin:0">
+        <div class="status-dot dot-yellow" id="sheet-dot"></div>
+        <span id="sheet-status-text">Not configured</span>
+      </div>
+    </div>
+    <div class="sheet-banner-sub">Responses will be saved automatically to your spreadsheet</div>
+    <div class="grid-2" style="margin-bottom:14px">
+      <div class="field" style="margin:0">
+        <label>Sheet ID</label>
+        <input type="text" id="sheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
+      </div>
+      <div class="field" style="margin:0">
+        <label>Apps Script Web App URL</label>
+        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
+      </div>
+    </div>
+    <div class="flex-row">
+      <button class="btn btn-ghost-white btn-sm" onclick="saveSheetConfig()">Save Configuration</button>
+      <button class="btn btn-ghost-white btn-sm" onclick="testSheetConnection()">Test Connection</button>
+    </div>
+  </div>
+
+  <!-- Grid: Add Member + Questions -->
+  <div class="grid-2">
+    <div class="card">
+      <div class="card-header"><h2>Add Team Member</h2></div>
+      <div class="field">
+        <label>Full Name</label>
+        <input type="text" id="memberName" placeholder="Jane Smith" />
+      </div>
+      <div class="field">
+        <label>Email Address</label>
+        <input type="email" id="memberEmail" placeholder="jane@company.com" />
+      </div>
+      <button class="btn btn-primary btn-full" onclick="addMember()">Add Member</button>
+    </div>
+
+    <div class="card">
+      <div class="card-header"><h2>Standup Questions</h2></div>
+      <div class="field">
+        <label>Question 1</label>
+        <input type="text" id="q1" value="What did you work on yesterday?" />
+      </div>
+      <div class="field">
+        <label>Question 2</label>
+        <input type="text" id="q2" value="What are you working on today?" />
+      </div>
+      <div class="field">
+        <label>Question 3</label>
+        <input type="text" id="q3" value="Do you have any blockers?" />
+      </div>
+      <button class="btn btn-secondary btn-sm" onclick="saveQuestions()">Save Questions</button>
+    </div>
+  </div>
+
+  <!-- Team List -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Team Members</h2>
+      <span class="tag" id="member-count">0 members</span>
+    </div>
+    <div id="member-list">
+      <div class="empty-state">
+        <div class="empty-icon">👥</div>
+        <div class="empty-text">No members yet. Add your first team member above.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Check-in Links -->
+  <div class="card">
+    <div class="card-header">
+      <h2>Check-in Links</h2>
+      <button class="btn btn-navy btn-sm" onclick="generateLinks()">Generate Links</button>
+    </div>
+    <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px; font-family:'IBM Plex Mono',monospace;">
+      Share these unique links with each team member for today's standup.
+    </p>
+    <div id="links-list">
+      <div class="empty-state" style="padding:30px">
+        <div class="empty-text">Click "Generate Links" to create check-in links.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Setup Guide -->
+  <div class="card">
+    <div class="card-header"><h2>Apps Script Setup Guide</h2></div>
+    <div class="step-list">
+      <div class="step-item"><div class="step-num">1</div><div>Create a new <strong>Google Sheet</strong> and copy its ID from the URL bar</div></div>
+      <div class="step-item"><div class="step-num">2</div><div>In the Sheet, go to <strong>Extensions → Apps Script</strong></div></div>
+      <div class="step-item"><div class="step-num">3</div><div>Paste the Apps Script code below and save <strong>(Ctrl+S)</strong></div></div>
+      <div class="step-item"><div class="step-num">4</div><div>Click <strong>Deploy → New deployment → Web App</strong></div></div>
+      <div class="step-item"><div class="step-num">5</div><div>Set <strong>Execute as: Me</strong> and <strong>Who has access: Anyone</strong></div></div>
+      <div class="step-item"><div class="step-num">6</div><div>Copy the Web App URL and paste it in the configuration above</div></div>
+    </div>
+    <div class="divider"></div>
+    <label>Apps Script Code</label>
+    <textarea id="appsScriptCode" readonly class="code-block" style="height:200px; border:none; width:100%">function doPost(e) {
+  try {
+    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = spreadsheet.getSheetByName("Standups");
+    if (!sheet) { sheet = spreadsheet.insertSheet("Standups"); }
+    if (sheet.getLastRow() === 0) {
+      sheet.appendRow(["Timestamp","Name","Email","Q1 - Yesterday","Q2 - Today","Q3 - Blockers"]);
+      sheet.getRange(1,1,1,6).setFontWeight("bold").setBackground("#1a56a0").setFontColor("#ffffff");
+    }
+    var data = JSON.parse(e.postData.contents);
+    sheet.appendRow([new Date().toLocaleString(), data.name||"", data.email||"", data.answers[0]||"", data.answers[1]||"", data.answers[2]||""]);
+    return ContentService.createTextOutput(JSON.stringify({status:"success"})).setMimeType(ContentService.MimeType.JSON);
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({status:"error",message:err.toString()})).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+function doGet(e) {
+  return ContentService.createTextOutput(JSON.stringify({status:"ok",message:"StandupBot connected!"})).setMimeType(ContentService.MimeType.JSON);
+}</textarea>
+    <button class="btn btn-secondary btn-sm" onclick="copyScript()" style="margin-top:10px">Copy Code</button>
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     CHECK-IN PAGE
+════════════════════════════════════════ -->
+<div class="page" id="page-checkin">
+  <div class="chat-wrapper">
+
+    <!-- Member Selector -->
+    <div id="member-selector" class="selector-panel">
+      <div class="selector-icon">👋</div>
+      <div class="selector-title">Daily Standup</div>
+      <div class="selector-sub">Select your name to begin today's check-in</div>
+      <div class="field" style="text-align:left; max-width:320px; margin:0 auto">
+        <label>Your Name</label>
+        <select id="checkin-select" onchange="startCheckin()">
+          <option value="">— Select your name —</option>
+        </select>
+      </div>
+    </div>
+
+    <!-- Chat Interface -->
+    <div id="chat-interface" class="hidden">
+      <!-- Top Bar -->
+      <div class="chat-topbar">
+        <div class="bot-avatar-wrap">🤖</div>
+        <div>
+          <div class="bot-info-name" id="chat-greeting">StandupBot</div>
+          <div class="bot-info-sub">Daily standup · 3 questions</div>
+        </div>
+      </div>
+
+      <!-- Progress -->
+      <div class="progress-row">
+        <span class="progress-label" id="progress-label">0 / 3</span>
+        <div class="progress-track">
+          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
+        </div>
+      </div>
+
+      <!-- Messages -->
+      <div class="chat-body" id="chat-messages"></div>
+
+      <!-- Input -->
+      <div class="chat-footer" id="chat-input-row">
+        <input type="text" id="chat-input" placeholder="Type your response…" onkeydown="if(event.key==='Enter') sendAnswer()" />
+        <button class="btn btn-primary" onclick="sendAnswer()">Send</button>
+      </div>
+
+      <!-- Complete -->
+      <div class="complete-panel hidden" id="complete-state">
+        <div class="complete-icon">✓</div>
+        <div class="complete-title">Standup Complete</div>
+        <div class="complete-sub">Your responses have been recorded. See you tomorrow.</div>
+        <div id="sheet-save-status" style="margin-bottom:18px; font-size:0.8rem; font-family:'IBM Plex Mono',monospace; color:var(--text-muted)"></div>
+        <button class="btn btn-secondary" onclick="resetCheckin()">New Submission</button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ═══════════════════════════════════════
+     DASHBOARD PAGE
+════════════════════════════════════════ -->
+<div class="page" id="page-dashboard">
+  <div class="page-title">Response Dashboard</div>
+  <div class="page-subtitle">// today's standup submissions</div>
+
+  <div class="grid-3" style="margin-bottom:24px">
+    <div class="stat-card">
+      <div class="stat-value" id="stat-total">0</div>
+      <div class="stat-label">Responses Today</div>
+    </div>
+    <div class="stat-card navy">
+      <div class="stat-value" id="stat-team">0</div>
+      <div class="stat-label">Team Members</div>
+    </div>
+    <div class="stat-card slate">
+      <div class="stat-value" id="stat-pending">0</div>
+      <div class="stat-label">Pending</div>
+    </div>
+  </div>
+
+  <div class="section-header">
+    <h2>Submissions</h2>
+    <div class="flex-row">
+      <button class="btn btn-secondary btn-sm" onclick="exportCSV()">Export CSV</button>
+      <button class="btn btn-navy btn-sm" onclick="loadDashboard()">Refresh</button>
+    </div>
+  </div>
+
+  <div id="responses-list">
+    <div class="empty-state">
+      <div class="empty-icon">📋</div>
+      <div class="empty-text">No responses yet today. Share check-in links with your team.</div>
+    </div>
+  </div>
+</div>
+
+<script>
+  // ══════════════════════════════════════
+  // STATE
+  // ══════════════════════════════════════
+  let state = {
+    members: [], questions: [
+      "What did you work on yesterday?",
+      "What are you working on today?",
+      "Do you have any blockers?"
+    ],
+    responses: [], sheetId: '', scriptUrl: '',
+    currentUser: null, currentAnswers: [], currentQuestion: 0
+  };
+
+  const COLORS = ['#1a56a0','#0f2d5c','#2563c4','#4a5568','#1a7f5a','#7c3aed'];
+
+  function loadState() {
+    const s = localStorage.getItem('standupbot_v2');
+    if (s) state = { ...state, ...JSON.parse(s) };
+  }
+
+  function saveState() {
+    localStorage.setItem('standupbot_v2', JSON.stringify(state));
+  }
+
+  // ══════════════════════════════════════
+  // NAV
+  // ══════════════════════════════════════
+  function showPage(page, el) {
+    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+    document.getElementById('page-' + page).classList.add('active');
+    if (el) el.classList.add('active');
+    if (page === 'dashboard') loadDashboard();
+    if (page === 'checkin') loadCheckinSelect();
+  }
+
+  // ══════════════════════════════════════
+  // ADMIN — MEMBERS
+  // ══════════════════════════════════════
+  function addMember() {
+    const name = document.getElementById('memberName').value.trim();
+    const email = document.getElementById('memberEmail').value.trim();
+    if (!name || !email) { toast('Please enter both name and email'); return; }
+    if (state.members.find(m => m.email === email)) { toast('Member already exists'); return; }
+    state.members.push({ id: Date.now().toString(), name, email, color: COLORS[state.members.length % COLORS.length] });
+    document.getElementById('memberName').value = '';
+    document.getElementById('memberEmail').value = '';
+    saveState(); renderMembers(); toast('Member added successfully');
+  }
+
+  function removeMember(id) {
+    state.members = state.members.filter(m => m.id !== id);
+    saveState(); renderMembers(); toast('Member removed');
+  }
+
+  function renderMembers() {
+    const list = document.getElementById('member-list');
+    document.getElementById('member-count').textContent = state.members.length + ' member' + (state.members.length !== 1 ? 's' : '');
+    if (state.members.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>`;
+      return;
+    }
+    list.innerHTML = state.members.map(m => {
+      const initials = m.name.split(' ').map(n => n[0]).join('').toUpperCase().slice(0,2);
+      const responded = state.responses.some(r => r.email === m.email && isToday(r.timestamp));
+      return `
+        <div class="member-row">
+          <div class="member-info">
+            <div class="avatar" style="background:${m.color}">${initials}</div>
+            <div>
+              <div class="member-name">${m.name}</div>
+              <div class="member-email">${m.email}</div>
+            </div>
+          </div>
+          <div class="flex-row">
+            <span class="badge ${responded ? 'badge-done' : 'badge-pending'}">${responded ? '✓ Submitted' : 'Pending'}</span>
+            <button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  // ══════════════════════════════════════
+  // ADMIN — QUESTIONS
+  // ══════════════════════════════════════
+  function saveQuestions() {
+    state.questions = [document.getElementById('q1').value, document.getElementById('q2').value, document.getElementById('q3').value];
+    saveState(); toast('Questions saved');
+  }
+
+  function loadQuestions() {
+    document.getElementById('q1').value = state.questions[0];
+    document.getElementById('q2').value = state.questions[1];
+    document.getElementById('q3').value = state.questions[2];
+  }
+
+  // ══════════════════════════════════════
+  // ADMIN — SHEET CONFIG
+  // ══════════════════════════════════════
+  function saveSheetConfig() {
+    state.sheetId = document.getElementById('sheetId').value.trim();
+    state.scriptUrl = document.getElementById('scriptUrl').value.trim();
+    saveState(); updateSheetStatus(); toast('Configuration saved');
+  }
+
+  function updateSheetStatus() {
+    const dot = document.getElementById('sheet-dot');
+    const txt = document.getElementById('sheet-status-text');
+    if (state.scriptUrl) { dot.className = 'status-dot dot-green'; txt.textContent = 'Connected'; }
+    else { dot.className = 'status-dot dot-yellow'; txt.textContent = 'Not configured'; }
+  }
+
+  async function testSheetConnection() {
+    if (!state.scriptUrl) { toast('Please enter the Script URL first'); return; }
+    toast('Testing…');
+    try {
+      const res = await fetch(state.scriptUrl + '?test=1');
+      const data = await res.json();
+      if (data.status === 'ok') { toast('✓ Connected to Google Sheets'); document.getElementById('sheet-dot').className = 'status-dot dot-green'; }
+    } catch(e) { toast('Connection failed — check URL'); }
+  }
+
+  function loadSheetConfig() {
+    document.getElementById('sheetId').value = state.sheetId || '';
+    document.getElementById('scriptUrl').value = state.scriptUrl || '';
+    updateSheetStatus();
+  }
+
+  // ══════════════════════════════════════
+  // ADMIN — LINKS
+  // ══════════════════════════════════════
+  function generateLinks() {
+    if (state.members.length === 0) { toast('Add team members first'); return; }
+    const base = window.location.href.split('?')[0];
+    document.getElementById('links-list').innerHTML = state.members.map(m => {
+      const link = `${base}?user=${encodeURIComponent(m.id)}`;
+      return `
+        <div style="margin-bottom:10px">
+          <div style="font-size:0.8rem;font-weight:600;color:var(--text-mid);margin-bottom:5px">${m.name}</div>
+          <div class="link-box">
+            <div class="link-text">${link}</div>
+            <button class="btn btn-secondary btn-sm" onclick="copyLink('${link}')">Copy</button>
+          </div>
+        </div>`;
+    }).join('');
+    toast('Links generated');
+  }
+
+  function copyLink(link) { navigator.clipboard.writeText(link); toast('Link copied to clipboard'); }
+  function copyScript() { navigator.clipboard.writeText(document.getElementById('appsScriptCode').value); toast('Script copied to clipboard'); }
+
+  // ══════════════════════════════════════
+  // CHECK-IN
+  // ══════════════════════════════════════
+  function loadCheckinSelect() {
+    const sel = document.getElementById('checkin-select');
+    sel.innerHTML = '<option value="">— Select your name —</option>';
+    state.members.forEach(m => { sel.innerHTML += `<option value="${m.id}">${m.name}</option>`; });
+    const userId = new URLSearchParams(window.location.search).get('user');
+    if (userId) { sel.value = userId; startCheckin(); }
+  }
+
+  function startCheckin() {
+    const userId = document.getElementById('checkin-select').value;
+    if (!userId) return;
+    const member = state.members.find(m => m.id === userId);
+    if (!member) { toast('Member not found'); return; }
+
+    if (state.responses.some(r => r.email === member.email && isToday(r.timestamp))) {
+      showChatUI(member);
+      document.getElementById('chat-input-row').classList.add('hidden');
+      document.getElementById('chat-messages').innerHTML = '';
+      document.getElementById('complete-state').classList.remove('hidden');
+      document.getElementById('sheet-save-status').textContent = '✓ Already submitted today';
+      return;
+    }
+
+    state.currentUser = member; state.currentAnswers = []; state.currentQuestion = 0;
+    showChatUI(member);
+    document.getElementById('complete-state').classList.add('hidden');
+    document.getElementById('chat-input-row').classList.remove('hidden');
+    document.getElementById('chat-messages').innerHTML = '';
+    updateProgress();
+
+    setTimeout(() => {
+      addBotMsg(`Good ${getTimeOfDay()}, ${member.name}. Ready for your daily standup?`);
+      setTimeout(() => askQuestion(0), 1100);
+    }, 400);
+  }
+
+  function showChatUI(member) {
+    document.getElementById('member-selector').classList.add('hidden');
+    document.getElementById('chat-interface').classList.remove('hidden');
+    document.getElementById('chat-greeting').textContent = `${member.name}'s Standup`;
+  }
+
+  function askQuestion(i) {
+    if (i >= state.questions.length) { completeCheckin(); return; }
+    setTimeout(() => {
+      addBotMsg(`<strong>Question ${i+1} of 3</strong><br/>${state.questions[i]}`);
+      document.getElementById('chat-input').focus();
+    }, 300);
+  }
+
+  function sendAnswer() {
+    const input = document.getElementById('chat-input');
+    const answer = input.value.trim();
+    if (!answer) return;
+    addUserMsg(answer);
+    input.value = '';
+    state.currentAnswers.push(answer);
+    state.currentQuestion++;
+    updateProgress();
+    if (state.currentQuestion < state.questions.length) {
+      showTyping();
+      setTimeout(() => { hideTyping(); askQuestion(state.currentQuestion); }, 700);
+    } else {
+      showTyping();
+      setTimeout(() => { hideTyping(); completeCheckin(); }, 900);
+    }
+  }
+
+  function completeCheckin() {
+    const response = {
+      id: Date.now().toString(),
+      name: state.currentUser.name, email: state.currentUser.email,
+      answers: [...state.currentAnswers], questions: [...state.questions],
+      timestamp: new Date().toISOString()
+    };
+    state.responses.push(response); saveState();
+    addBotMsg("Thank you. Your standup has been recorded successfully.");
+    document.getElementById('chat-input-row').classList.add('hidden');
+    updateProgress();
+    setTimeout(() => { document.getElementById('complete-state').classList.remove('hidden'); sendToSheets(response); }, 900);
+  }
+
+  async function sendToSheets(response) {
+    const el = document.getElementById('sheet-save-status');
+    if (!state.scriptUrl) { el.innerHTML = '⚠ Google Sheets not configured — saved locally'; return; }
+    el.textContent = 'Saving to Google Sheets…';
+    try {
+      await fetch(state.scriptUrl, { method: 'POST', mode: 'no-cors', headers: {'Content-Type':'application/json'}, body: JSON.stringify(response) });
+      el.innerHTML = '<span style="color:var(--success)">✓ Saved to Google Sheets</span>';
+    } catch(e) {
+      el.innerHTML = '<span style="color:var(--warn)">⚠ Sheets save failed — saved locally</span>';
+    }
+  }
+
+  function updateProgress() {
+    const pct = Math.min((state.currentQuestion / state.questions.length) * 100, 100);
+    document.getElementById('progress-fill').style.width = pct + '%';
+    document.getElementById('progress-label').textContent = `${state.currentQuestion} / ${state.questions.length}`;
+  }
+
+  function addBotMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const d = document.createElement('div');
+    d.className = 'msg msg-bot';
+    d.innerHTML = `<div class="msg-sender">StandupBot</div><div class="bubble">${text}</div>`;
+    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function addUserMsg(text) {
+    const msgs = document.getElementById('chat-messages');
+    const d = document.createElement('div');
+    d.className = 'msg msg-user';
+    d.innerHTML = `<div class="msg-sender">You</div><div class="bubble">${text}</div>`;
+    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function showTyping() {
+    const msgs = document.getElementById('chat-messages');
+    const d = document.createElement('div');
+    d.id = 'typing-wrap'; d.className = 'typing-wrap';
+    d.innerHTML = `<div class="msg-sender">StandupBot</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+  }
+
+  function hideTyping() { const t = document.getElementById('typing-wrap'); if (t) t.remove(); }
+
+  function resetCheckin() {
+    document.getElementById('chat-interface').classList.add('hidden');
+    document.getElementById('member-selector').classList.remove('hidden');
+    document.getElementById('checkin-select').value = '';
+  }
+
+  // ══════════════════════════════════════
+  // DASHBOARD
+  // ══════════════════════════════════════
+  function loadDashboard() {
+    const today = state.responses.filter(r => isToday(r.timestamp));
+    document.getElementById('stat-total').textContent = today.length;
+    document.getElementById('stat-team').textContent = state.members.length;
+    document.getElementById('stat-pending').textContent = Math.max(0, state.members.length - today.length);
+    const list = document.getElementById('responses-list');
+    if (today.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No responses yet today.</div></div>`;
+      return;
+    }
+    list.innerHTML = today.map(r => {
+      const member = state.members.find(m => m.email === r.email);
+      const color = member?.color || '#1a56a0';
+      const initials = r.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+      const time = new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      return `
+        <div class="response-card">
+          <div class="response-meta">
+            <div class="flex-row">
+              <div class="avatar" style="background:${color}">${initials}</div>
+              <div>
+                <div class="response-name">${r.name}</div>
+                <div class="response-email">${r.email}</div>
+              </div>
+            </div>
+            <div style="text-align:right">
+              <span class="badge badge-done">✓ Submitted</span>
+              <div class="response-time" style="margin-top:4px">${time}</div>
+            </div>
+          </div>
+          <div class="qa-grid">
+            ${r.questions.map((q,i) => `
+              <div class="qa-item">
+                <div class="qa-q">${q}</div>
+                <div class="qa-a">${r.answers[i] || '—'}</div>
+              </div>`).join('')}
+          </div>
+        </div>`;
+    }).join('');
+  }
+
+  function exportCSV() {
+    const today = state.responses.filter(r => isToday(r.timestamp));
+    if (!today.length) { toast('No responses to export'); return; }
+    const headers = ['Name','Email','Time','Q1','Q2','Q3'];
+    const rows = today.map(r => [r.name, r.email, new Date(r.timestamp).toLocaleTimeString(), r.answers[0]||'', r.answers[1]||'', r.answers[2]||'']);
+    const csv = [headers, ...rows].map(row => row.map(c => `"${c}"`).join(',')).join('\n');
+    const a = document.createElement('a');
+    a.href = URL.createObjectURL(new Blob([csv], {type:'text/csv'}));
+    a.download = `standup-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click(); toast('CSV exported');
+  }
+
+  // ══════════════════════════════════════
+  // UTILS
+  // ══════════════════════════════════════
+  function isToday(ts) {
+    const d = new Date(ts), n = new Date();
+    return d.getDate()===n.getDate() && d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
+  }
+
+  function getTimeOfDay() {
+    const h = new Date().getHours();
+    return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+  }
+
+  function toast(msg) {
+    const el = document.getElementById('toast');
+    el.textContent = msg; el.classList.add('show');
+    setTimeout(() => el.classList.remove('show'), 2800);
+  }
+
+  // ══════════════════════════════════════
+  // INIT
+  // ══════════════════════════════════════
+  loadState(); renderMembers(); loadQuestions(); loadSheetConfig();
+  const urlUser = new URLSearchParams(window.location.search).get('user');
+  if (urlUser) {
+    document.getElementById('page-admin').classList.remove('active');
+    document.getElementById('page-checkin').classList.add('active');
+    document.querySelectorAll('.nav-tab')[1].classList.add('active');
+    document.querySelectorAll('.nav-tab')[0].classList.remove('active');
+    loadCheckinSelect();
+  }
+</script>
+</body>
+</html>
