@@ -1,2 +1,2 @@
-# standupbot
-Daily standup bot 
+# DailyDash
+Daily Tracker bot 
