@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>DailyDash</title>
+  <title>Daily Dash</title>
   <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:wght@600;700&family=IBM+Plex+Sans:wght@300;400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap" rel="stylesheet"/>
   <style>
     :root {
@@ -33,589 +33,312 @@
       --radius-sm:    6px;
       --radius-md:    10px;
       --radius-lg:    14px;
-
-      /* Role colours */
-      --role-admin:   #0f2d5c;
-      --role-manager: #6d28d9;
-      --role-member:  #1a7f5a;
     }
 
     * { box-sizing: border-box; margin: 0; padding: 0; }
 
-    body {
-      font-family: 'IBM Plex Sans', sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      min-height: 100vh;
-      font-size: 14px;
-      line-height: 1.6;
-    }
+    body { font-family: 'IBM Plex Sans', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; font-size: 14px; line-height: 1.6; }
 
-    /* ── NAV ── */
-    nav {
+    /* ── LOADING SCREEN ── */
+    .loading-screen {
+      position: fixed; inset: 0;
       background: var(--navy);
-      padding: 0 40px;
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      height: 60px;
-      position: sticky;
-      top: 0;
-      z-index: 100;
-      box-shadow: 0 2px 8px rgba(15,45,92,0.25);
+      display: flex; flex-direction: column;
+      align-items: center; justify-content: center;
+      z-index: 9999; gap: 16px;
+      transition: opacity 0.4s ease;
     }
 
-    .logo {
-      display: flex; align-items: center; gap: 10px;
-      color: #fff;
-      font-family: 'Playfair Display', serif;
-      font-size: 1.2rem; font-weight: 700;
-    }
+    .loading-screen.fade-out { opacity: 0; pointer-events: none; }
 
-    .logo-mark {
-      width: 30px; height: 30px;
+    .loading-logo {
+      width: 60px; height: 60px;
       background: var(--blue-mid);
-      border-radius: 8px;
+      border-radius: 16px;
       display: flex; align-items: center; justify-content: center;
-      font-size: 0.9rem;
+      font-size: 1.8rem;
+      margin-bottom: 8px;
     }
 
-    .nav-right { display: flex; align-items: center; gap: 12px; }
-
-    .nav-tabs { display: flex; gap: 2px; }
-
-    .nav-tab {
-      padding: 8px 18px;
-      border-radius: var(--radius-sm);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 0.82rem; font-weight: 500;
-      cursor: pointer; border: none;
-      background: transparent;
-      color: rgba(255,255,255,0.5);
-      transition: all 0.18s;
+    .loading-title {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem; color: #fff; font-weight: 700;
     }
 
-    .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
-    .nav-tab.active { background: var(--blue-mid); color: #fff; font-weight: 600; }
-    .nav-tab.hidden-tab { display: none; }
+    .loading-sub {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.78rem; color: rgba(255,255,255,0.5);
+      margin-bottom: 8px;
+    }
 
-    /* Current user pill */
-    .user-pill {
-      display: flex; align-items: center; gap: 8px;
-      padding: 5px 12px 5px 6px;
-      background: rgba(255,255,255,0.1);
-      border-radius: 20px;
-      border: 1px solid rgba(255,255,255,0.15);
-      cursor: pointer;
-      transition: background 0.15s;
+    .loading-spinner {
+      width: 32px; height: 32px;
+      border: 3px solid rgba(255,255,255,0.15);
+      border-top-color: var(--blue-mid);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
     }
-    .user-pill:hover { background: rgba(255,255,255,0.18); }
-    .user-pill-avatar {
-      width: 24px; height: 24px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 0.65rem; font-weight: 700; color: #fff;
-    }
-    .user-pill-name { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.9); }
-    .user-pill-role {
-      font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace;
-      padding: 1px 6px; border-radius: 3px; font-weight: 600;
-    }
-    .role-pill-admin   { background: rgba(255,255,255,0.2); color: #fff; }
-    .role-pill-manager { background: rgba(109,40,217,0.4); color: #ddd6fe; }
-    .role-pill-member  { background: rgba(26,127,90,0.4); color: #a7f3d0; }
 
-    /* ── WHO ARE YOU SCREEN ── */
-    .who-screen {
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .loading-status {
+      font-family: 'IBM Plex Mono', monospace;
+      font-size: 0.75rem; color: rgba(255,255,255,0.4);
+    }
+
+    /* ── SETUP SCREEN ── */
+    .setup-screen {
       min-height: 100vh;
       display: flex; align-items: center; justify-content: center;
-      background: var(--bg);
-      padding: 20px;
+      padding: 20px; background: var(--bg);
     }
 
-    .who-card {
+    .setup-card {
       background: var(--white);
       border: 1px solid var(--border);
       border-radius: var(--radius-lg);
       padding: 48px 40px;
-      width: 100%; max-width: 480px;
+      width: 100%; max-width: 500px;
       box-shadow: var(--shadow-lg);
-      text-align: center;
     }
 
-    .who-logo {
-      width: 56px; height: 56px;
-      background: var(--navy);
-      border-radius: 16px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem;
-      margin: 0 auto 20px;
+    .setup-logo {
+      width: 52px; height: 52px; background: var(--navy);
+      border-radius: 14px; display: flex; align-items: center; justify-content: center;
+      font-size: 1.5rem; margin: 0 auto 20px;
     }
 
-    .who-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.6rem; color: var(--navy);
-      margin-bottom: 6px;
+    .setup-title { font-family: 'Playfair Display', serif; font-size: 1.5rem; color: var(--navy); text-align: center; margin-bottom: 6px; }
+    .setup-sub   { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text-muted); text-align: center; margin-bottom: 28px; }
+
+    .setup-step {
+      display: flex; gap: 12px; align-items: flex-start;
+      padding: 12px 0; border-bottom: 1px solid var(--border);
+      font-size: 0.85rem;
+    }
+    .setup-step:last-of-type { border-bottom: none; }
+    .step-num { width: 22px; height: 22px; background: var(--navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
+
+    /* ── WHO ARE YOU ── */
+    .who-screen { min-height: 100vh; display: flex; align-items: center; justify-content: center; background: var(--bg); padding: 20px; }
+
+    .who-card {
+      background: var(--white); border: 1px solid var(--border);
+      border-radius: var(--radius-lg); padding: 48px 40px;
+      width: 100%; max-width: 480px; box-shadow: var(--shadow-lg); text-align: center;
     }
 
-    .who-sub {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.78rem; color: var(--text-muted);
-      margin-bottom: 32px;
-    }
+    .who-logo { width: 56px; height: 56px; background: var(--navy); border-radius: 16px; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 20px; }
+    .who-title { font-family: 'Playfair Display', serif; font-size: 1.6rem; color: var(--navy); margin-bottom: 6px; }
+    .who-sub   { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 32px; }
 
-    .who-members {
-      display: flex; flex-direction: column; gap: 8px;
-      margin-bottom: 20px;
-      max-height: 300px; overflow-y: auto;
-    }
+    .who-members { display: flex; flex-direction: column; gap: 8px; max-height: 320px; overflow-y: auto; }
 
     .who-member-btn {
       display: flex; align-items: center; gap: 14px;
-      padding: 14px 16px;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      cursor: pointer; text-align: left;
-      transition: all 0.15s;
-      width: 100%;
+      padding: 14px 16px; background: var(--surface);
+      border: 1px solid var(--border); border-radius: var(--radius-md);
+      cursor: pointer; text-align: left; transition: all 0.15s; width: 100%;
     }
-
-    .who-member-btn:hover {
-      border-color: var(--blue-mid);
-      background: var(--blue-pale);
-      box-shadow: var(--shadow-sm);
-      transform: translateX(3px);
-    }
-
+    .who-member-btn:hover { border-color: var(--blue-mid); background: var(--blue-pale); box-shadow: var(--shadow-sm); transform: translateX(3px); }
     .who-member-info { flex: 1; }
-    .who-member-name { font-weight: 600; font-size: 0.9rem; color: var(--text); }
+    .who-member-name  { font-weight: 600; font-size: 0.9rem; color: var(--text); }
     .who-member-email { font-family: 'IBM Plex Mono', monospace; font-size: 0.72rem; color: var(--text-muted); }
 
-    .who-role-badge {
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 0.68rem; font-weight: 700;
-      font-family: 'IBM Plex Mono', monospace;
-      letter-spacing: 0.03em; text-transform: uppercase;
-    }
-
+    .who-role-badge { padding: 3px 10px; border-radius: 20px; font-size: 0.68rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; }
     .badge-admin   { background: #e8eef8; color: var(--navy); border: 1px solid #bfdbfe; }
     .badge-manager { background: #f3e8ff; color: #6d28d9;     border: 1px solid #ddd6fe; }
     .badge-member  { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
 
-    .who-empty {
-      padding: 30px; color: var(--text-muted);
-      font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem;
+    /* ── NAV ── */
+    nav {
+      background: var(--navy); padding: 0 40px;
+      display: flex; align-items: center; justify-content: space-between;
+      height: 60px; position: sticky; top: 0; z-index: 100;
+      box-shadow: 0 2px 8px rgba(15,45,92,0.25);
     }
+
+    .logo { display: flex; align-items: center; gap: 10px; color: #fff; font-family: 'Playfair Display', serif; font-size: 1.2rem; font-weight: 700; }
+    .logo-mark { width: 30px; height: 30px; background: var(--blue-mid); border-radius: 8px; display: flex; align-items: center; justify-content: center; font-size: 0.9rem; }
+
+    .nav-right { display: flex; align-items: center; gap: 12px; }
+    .nav-tabs  { display: flex; gap: 2px; }
+
+    .nav-tab { padding: 8px 18px; border-radius: var(--radius-sm); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.82rem; font-weight: 500; cursor: pointer; border: none; background: transparent; color: rgba(255,255,255,0.5); transition: all 0.18s; }
+    .nav-tab:hover:not(.active) { background: rgba(255,255,255,0.08); color: rgba(255,255,255,0.85); }
+    .nav-tab.active { background: var(--blue-mid); color: #fff; font-weight: 600; }
+    .nav-tab.hidden-tab { display: none; }
+
+    .user-pill { display: flex; align-items: center; gap: 8px; padding: 5px 12px 5px 6px; background: rgba(255,255,255,0.1); border-radius: 20px; border: 1px solid rgba(255,255,255,0.15); cursor: pointer; transition: background 0.15s; }
+    .user-pill:hover { background: rgba(255,255,255,0.18); }
+    .user-pill-avatar { width: 24px; height: 24px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.65rem; font-weight: 700; color: #fff; }
+    .user-pill-name   { font-size: 0.78rem; font-weight: 600; color: rgba(255,255,255,0.9); }
+    .user-pill-role   { font-size: 0.65rem; font-family: 'IBM Plex Mono', monospace; padding: 1px 6px; border-radius: 3px; font-weight: 600; }
+    .role-pill-admin   { background: rgba(255,255,255,0.2); color: #fff; }
+    .role-pill-manager { background: rgba(109,40,217,0.4); color: #ddd6fe; }
+    .role-pill-member  { background: rgba(26,127,90,0.4); color: #a7f3d0; }
 
     /* ── PAGES ── */
     .page { display: none; padding: 36px 40px; animation: fadeUp 0.25s ease; }
     .page.active { display: block; }
 
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(6px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
+    @keyframes fadeUp { from { opacity: 0; transform: translateY(6px); } to { opacity: 1; transform: translateY(0); } }
 
     /* ── TYPOGRAPHY ── */
-    .page-title {
-      font-family: 'Playfair Display', serif;
-      font-size: 1.7rem; font-weight: 700;
-      color: var(--navy); letter-spacing: -0.02em;
-      margin-bottom: 4px;
-    }
-
-    .page-subtitle {
-      font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.78rem; color: var(--text-muted);
-      margin-bottom: 28px; letter-spacing: 0.02em;
-    }
-
-    h2 {
-      font-size: 0.9rem; font-weight: 600;
-      color: var(--navy); margin-bottom: 14px;
-    }
+    .page-title    { font-family: 'Playfair Display', serif; font-size: 1.7rem; font-weight: 700; color: var(--navy); letter-spacing: -0.02em; margin-bottom: 4px; }
+    .page-subtitle { font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--text-muted); margin-bottom: 28px; }
+    h2 { font-size: 0.9rem; font-weight: 600; color: var(--navy); margin-bottom: 14px; }
 
     /* ── CARDS ── */
-    .card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 24px; margin-bottom: 18px;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .card-header {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 18px; padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px; box-shadow: var(--shadow-sm); }
+    .card-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 18px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
     .card-header h2 { margin: 0; }
 
     /* ── SHEET BANNER ── */
     .sheet-banner {
       background: linear-gradient(135deg, var(--navy) 0%, var(--blue) 100%);
-      border-radius: var(--radius-lg);
-      padding: 24px; margin-bottom: 18px;
-      color: #fff; box-shadow: var(--shadow-md);
-      position: relative; overflow: hidden;
+      border-radius: var(--radius-lg); padding: 24px; margin-bottom: 18px;
+      color: #fff; box-shadow: var(--shadow-md); position: relative; overflow: hidden;
     }
-
-    .sheet-banner::after {
-      content: ''; position: absolute;
-      right: -30px; top: -30px;
-      width: 160px; height: 160px;
-      border-radius: 50%;
-      background: rgba(255,255,255,0.04);
-    }
-
+    .sheet-banner::after { content: ''; position: absolute; right: -30px; top: -30px; width: 160px; height: 160px; border-radius: 50%; background: rgba(255,255,255,0.04); }
     .sheet-banner h2 { color: #fff; margin: 0; font-size: 1rem; }
     .sheet-banner-sub { font-size: 0.8rem; color: rgba(255,255,255,0.6); margin-bottom: 18px; font-family: 'IBM Plex Mono', monospace; }
-
-    .sheet-status-row {
-      display: flex; align-items: center; gap: 8px;
-      font-size: 0.78rem; font-family: 'IBM Plex Mono', monospace;
-      color: rgba(255,255,255,0.7); margin-bottom: 16px;
-    }
-
+    .sheet-status-row { display: flex; align-items: center; gap: 8px; font-size: 0.78rem; font-family: 'IBM Plex Mono', monospace; color: rgba(255,255,255,0.7); margin-bottom: 16px; }
     .status-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
     .dot-green  { background: #34d399; box-shadow: 0 0 6px #34d399; }
     .dot-yellow { background: #fbbf24; }
 
     /* ── INPUTS ── */
     .field { margin-bottom: 14px; }
-
-    label {
-      display: block; font-size: 0.74rem; font-weight: 600;
-      letter-spacing: 0.06em; text-transform: uppercase;
-      color: var(--slate); margin-bottom: 5px;
-    }
-
-    input, textarea, select {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-sm);
-      padding: 9px 12px;
-      color: var(--text);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-size: 0.88rem; outline: none;
-      transition: border-color 0.15s, box-shadow 0.15s;
-    }
-
-    input:focus, textarea:focus, select:focus {
-      border-color: var(--blue-mid);
-      box-shadow: 0 0 0 3px rgba(37,99,196,0.12);
-      background: var(--white);
-    }
-
+    label { display: block; font-size: 0.74rem; font-weight: 600; letter-spacing: 0.06em; text-transform: uppercase; color: var(--slate); margin-bottom: 5px; }
+    input, textarea, select { width: 100%; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; color: var(--text); font-family: 'IBM Plex Sans', sans-serif; font-size: 0.88rem; outline: none; transition: border-color 0.15s, box-shadow 0.15s; }
+    input:focus, textarea:focus, select:focus { border-color: var(--blue-mid); box-shadow: 0 0 0 3px rgba(37,99,196,0.12); background: var(--white); }
     .sheet-banner input { background: rgba(255,255,255,0.1); border-color: rgba(255,255,255,0.2); color: #fff; }
     .sheet-banner input::placeholder { color: rgba(255,255,255,0.4); }
     .sheet-banner input:focus { background: rgba(255,255,255,0.15); border-color: rgba(255,255,255,0.5); box-shadow: 0 0 0 3px rgba(255,255,255,0.1); }
     .sheet-banner label { color: rgba(255,255,255,0.6); }
-
     textarea { resize: vertical; min-height: 80px; }
 
     /* ── BUTTONS ── */
-    .btn {
-      display: inline-flex; align-items: center; gap: 6px;
-      padding: 9px 18px;
-      border-radius: var(--radius-sm);
-      font-family: 'IBM Plex Sans', sans-serif;
-      font-weight: 600; font-size: 0.82rem;
-      cursor: pointer; border: none;
-      transition: all 0.15s; white-space: nowrap;
-    }
-
-    .btn-primary { background: var(--blue-mid); color: #fff; box-shadow: 0 1px 3px rgba(37,99,196,0.3); }
+    .btn { display: inline-flex; align-items: center; gap: 6px; padding: 9px 18px; border-radius: var(--radius-sm); font-family: 'IBM Plex Sans', sans-serif; font-weight: 600; font-size: 0.82rem; cursor: pointer; border: none; transition: all 0.15s; white-space: nowrap; }
+    .btn-primary   { background: var(--blue-mid); color: #fff; box-shadow: 0 1px 3px rgba(37,99,196,0.3); }
     .btn-primary:hover { background: #1d4db5; transform: translateY(-1px); }
-    .btn-navy { background: var(--navy); color: #fff; }
+    .btn-navy      { background: var(--navy); color: #fff; }
     .btn-navy:hover { background: #0a2040; transform: translateY(-1px); }
     .btn-secondary { background: var(--white); color: var(--slate); border: 1px solid var(--border); }
     .btn-secondary:hover { border-color: var(--blue-mid); color: var(--blue-mid); background: var(--blue-pale); }
     .btn-ghost-white { background: rgba(255,255,255,0.12); color: rgba(255,255,255,0.85); border: 1px solid rgba(255,255,255,0.2); }
     .btn-ghost-white:hover { background: rgba(255,255,255,0.2); color: #fff; }
-    .btn-danger { background: #fff0ef; color: var(--danger); border: 1px solid #fccfcc; }
+    .btn-danger    { background: #fff0ef; color: var(--danger); border: 1px solid #fccfcc; }
     .btn-danger:hover { background: var(--danger); color: #fff; }
-    .btn-sm { padding: 6px 13px; font-size: 0.78rem; }
+    .btn-sm   { padding: 6px 13px; font-size: 0.78rem; }
     .btn-full { width: 100%; justify-content: center; }
+
+    /* ── SYNC INDICATOR ── */
+    .sync-bar {
+      display: flex; align-items: center; gap: 8px;
+      padding: 8px 14px; border-radius: var(--radius-sm);
+      font-family: 'IBM Plex Mono', monospace; font-size: 0.75rem;
+      margin-bottom: 16px;
+    }
+    .sync-bar.syncing { background: var(--blue-pale); color: var(--blue); border: 1px solid #bfdbfe; }
+    .sync-bar.synced  { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
+    .sync-bar.error   { background: var(--warn-bg); color: var(--warn); border: 1px solid #fde68a; }
+
+    .sync-spinner { width: 12px; height: 12px; border: 2px solid rgba(37,99,196,0.3); border-top-color: var(--blue-mid); border-radius: 50%; animation: spin 0.7s linear infinite; }
 
     /* ── GRID ── */
     .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 18px; }
     .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 14px; }
 
     /* ── STAT CARDS ── */
-    .stat-card {
-      background: var(--white);
-      border: 1px solid var(--border);
-      border-radius: var(--radius-lg);
-      padding: 20px 22px;
-      box-shadow: var(--shadow-sm);
-      position: relative; overflow: hidden;
-    }
-
-    .stat-card::before {
-      content: ''; position: absolute;
-      top: 0; left: 0; right: 0; height: 3px;
-      background: var(--blue-mid);
-    }
-
-    .stat-card.navy::before { background: var(--navy); }
+    .stat-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px 22px; box-shadow: var(--shadow-sm); position: relative; overflow: hidden; }
+    .stat-card::before { content: ''; position: absolute; top: 0; left: 0; right: 0; height: 3px; background: var(--blue-mid); }
+    .stat-card.navy::before  { background: var(--navy); }
     .stat-card.slate::before { background: var(--slate); }
-
-    .stat-value {
-      font-family: 'Playfair Display', serif;
-      font-size: 2.4rem; font-weight: 700;
-      color: var(--navy); line-height: 1; margin-bottom: 6px;
-    }
-
-    .stat-label {
-      font-size: 0.75rem; color: var(--text-muted);
-      font-family: 'IBM Plex Mono', monospace;
-      letter-spacing: 0.04em; text-transform: uppercase;
-    }
+    .stat-value { font-family: 'Playfair Display', serif; font-size: 2.4rem; font-weight: 700; color: var(--navy); line-height: 1; margin-bottom: 6px; }
+    .stat-label { font-size: 0.75rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.04em; text-transform: uppercase; }
 
     /* ── MEMBER ROWS ── */
-    .member-row {
-      display: flex; align-items: center; justify-content: space-between;
-      padding: 12px 14px;
-      border: 1px solid var(--border);
-      border-radius: var(--radius-md);
-      margin-bottom: 8px;
-      background: var(--surface);
-      transition: all 0.15s;
-    }
-
+    .member-row { display: flex; align-items: center; justify-content: space-between; padding: 12px 14px; border: 1px solid var(--border); border-radius: var(--radius-md); margin-bottom: 8px; background: var(--surface); transition: all 0.15s; }
     .member-row:hover { border-color: var(--blue-mid); background: var(--blue-pale); box-shadow: var(--shadow-sm); }
-
     .member-info { display: flex; align-items: center; gap: 12px; }
-
-    .avatar {
-      width: 36px; height: 36px; border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-weight: 700; font-size: 0.78rem; color: #fff;
-      flex-shrink: 0; letter-spacing: 0.05em;
-    }
-
+    .avatar { width: 36px; height: 36px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700; font-size: 0.78rem; color: #fff; flex-shrink: 0; }
     .member-name  { font-weight: 600; font-size: 0.88rem; color: var(--text); }
     .member-email { font-size: 0.75rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; }
 
-    /* ── ROLE SELECT IN TABLE ── */
-    .role-select {
-      padding: 4px 8px; font-size: 0.75rem;
-      border-radius: var(--radius-sm);
-      font-family: 'IBM Plex Mono', monospace;
-      font-weight: 600; cursor: pointer;
-      width: auto;
-    }
-
-    .role-select.admin   { background: #e8eef8; color: var(--navy); border-color: #bfdbfe; }
-    .role-select.manager { background: #f3e8ff; color: #6d28d9;     border-color: #ddd6fe; }
-    .role-select.member  { background: var(--success-bg); color: var(--success); border-color: #a7f3d0; }
+    .role-select { padding: 4px 8px; font-size: 0.75rem; border-radius: var(--radius-sm); font-family: 'IBM Plex Mono', monospace; font-weight: 600; cursor: pointer; width: auto; }
 
     /* ── BADGES ── */
-    .badge {
-      padding: 3px 10px; border-radius: 20px;
-      font-size: 0.7rem; font-weight: 600;
-      font-family: 'IBM Plex Mono', monospace; letter-spacing: 0.03em;
-    }
-
+    .badge { padding: 3px 10px; border-radius: 20px; font-size: 0.7rem; font-weight: 600; font-family: 'IBM Plex Mono', monospace; }
     .badge-done    { background: var(--success-bg); color: var(--success); border: 1px solid #a7f3d0; }
     .badge-pending { background: var(--warn-bg); color: var(--warn); border: 1px solid #fde68a; }
 
     /* ── LINK BOX ── */
-    .link-box {
-      display: flex; align-items: center; gap: 10px;
-      background: var(--surface); border: 1px solid var(--border);
-      border-radius: var(--radius-sm); padding: 9px 12px;
-    }
+    .link-box { display: flex; align-items: center; gap: 10px; background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-sm); padding: 9px 12px; }
+    .link-text { flex: 1; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: var(--blue); overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
 
-    .link-text {
-      flex: 1; font-family: 'IBM Plex Mono', monospace;
-      font-size: 0.78rem; color: var(--blue);
-      overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-    }
-
-    /* ── ROLE INFO BOX ── */
-    .role-info-grid {
-      display: grid; grid-template-columns: repeat(3,1fr); gap: 12px;
-      margin-bottom: 20px;
-    }
-
-    .role-info-card {
-      border-radius: var(--radius-md);
-      padding: 14px;
-      border: 1px solid;
-    }
-
+    /* ── ROLE INFO ── */
+    .role-info-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 12px; margin-bottom: 20px; }
+    .role-info-card { border-radius: var(--radius-md); padding: 14px; border: 1px solid; }
     .role-info-card.admin   { background: #e8eef8; border-color: #bfdbfe; }
     .role-info-card.manager { background: #f3e8ff; border-color: #ddd6fe; }
     .role-info-card.member  { background: var(--success-bg); border-color: #a7f3d0; }
-
-    .role-info-title {
-      font-size: 0.78rem; font-weight: 700;
-      font-family: 'IBM Plex Mono', monospace;
-      text-transform: uppercase; letter-spacing: 0.06em;
-      margin-bottom: 6px;
-    }
-
+    .role-info-title { font-size: 0.78rem; font-weight: 700; font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; }
     .role-info-card.admin   .role-info-title { color: var(--navy); }
     .role-info-card.manager .role-info-title { color: #6d28d9; }
     .role-info-card.member  .role-info-title { color: var(--success); }
-
     .role-info-perms { font-size: 0.78rem; color: var(--text-mid); line-height: 1.8; }
 
     /* ── CHAT ── */
     .chat-wrapper { max-width: 640px; margin: 0 auto; }
-
-    .chat-topbar {
-      background: var(--navy);
-      border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-      padding: 18px 24px;
-      display: flex; align-items: center; gap: 14px;
-      box-shadow: 0 2px 8px rgba(15,45,92,0.2);
-    }
-
-    .bot-avatar-wrap {
-      width: 44px; height: 44px;
-      background: var(--blue-mid);
-      border-radius: 12px;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.3rem; flex-shrink: 0;
-    }
-
+    .chat-topbar { background: var(--navy); border-radius: var(--radius-lg) var(--radius-lg) 0 0; padding: 18px 24px; display: flex; align-items: center; gap: 14px; }
+    .bot-avatar-wrap { width: 44px; height: 44px; background: var(--blue-mid); border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.3rem; flex-shrink: 0; }
     .bot-info-name { font-weight: 600; font-size: 0.95rem; color: #fff; font-family: 'Playfair Display', serif; }
     .bot-info-sub  { font-size: 0.73rem; color: rgba(255,255,255,0.5); font-family: 'IBM Plex Mono', monospace; }
 
-    .progress-row {
-      background: var(--white);
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      padding: 10px 20px;
-      display: flex; align-items: center; gap: 12px;
-    }
-
+    .progress-row { background: var(--white); border-left: 1px solid var(--border); border-right: 1px solid var(--border); padding: 10px 20px; display: flex; align-items: center; gap: 12px; }
     .progress-label { font-size: 0.72rem; font-family: 'IBM Plex Mono', monospace; color: var(--text-muted); white-space: nowrap; }
-
     .progress-track { flex: 1; height: 4px; background: var(--border); border-radius: 2px; overflow: hidden; }
-    .progress-fill { height: 100%; background: linear-gradient(90deg, var(--blue-mid), var(--navy)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
+    .progress-fill  { height: 100%; background: linear-gradient(90deg, var(--blue-mid), var(--navy)); border-radius: 2px; transition: width 0.5s cubic-bezier(0.4,0,0.2,1); }
 
-    .chat-body {
-      background: var(--surface);
-      border-left: 1px solid var(--border);
-      border-right: 1px solid var(--border);
-      min-height: 340px; max-height: 400px;
-      overflow-y: auto; padding: 20px;
-      scroll-behavior: smooth;
-    }
-
+    .chat-body { background: var(--surface); border-left: 1px solid var(--border); border-right: 1px solid var(--border); min-height: 340px; max-height: 400px; overflow-y: auto; padding: 20px; scroll-behavior: smooth; }
     .chat-body::-webkit-scrollbar { width: 4px; }
     .chat-body::-webkit-scrollbar-thumb { background: var(--border); border-radius: 2px; }
 
     .msg { margin-bottom: 14px; animation: msgIn 0.25s ease; }
+    @keyframes msgIn { from { opacity: 0; transform: translateY(5px); } to { opacity: 1; transform: translateY(0); } }
 
-    @keyframes msgIn {
-      from { opacity: 0; transform: translateY(5px); }
-      to   { opacity: 1; transform: translateY(0); }
-    }
-
-    .msg-sender {
-      font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em;
-      text-transform: uppercase; color: var(--text-muted);
-      font-family: 'IBM Plex Mono', monospace; margin-bottom: 4px;
-    }
-
-    .msg-bot .bubble {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 2px 12px 12px 12px;
-      padding: 11px 15px; display: inline-block; max-width: 85%;
-      font-size: 0.88rem; line-height: 1.65; color: var(--text);
-      box-shadow: var(--shadow-sm);
-    }
-
+    .msg-sender { font-size: 0.7rem; font-weight: 600; letter-spacing: 0.05em; text-transform: uppercase; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 4px; }
+    .msg-bot .bubble { background: var(--white); border: 1px solid var(--border); border-radius: 2px 12px 12px 12px; padding: 11px 15px; display: inline-block; max-width: 85%; font-size: 0.88rem; line-height: 1.65; color: var(--text); box-shadow: var(--shadow-sm); }
     .msg-user { text-align: right; }
-
-    .msg-user .bubble {
-      background: var(--navy); color: #fff;
-      border-radius: 12px 2px 12px 12px;
-      padding: 11px 15px; display: inline-block; max-width: 85%;
-      font-size: 0.88rem; font-weight: 500; line-height: 1.65;
-      box-shadow: 0 2px 8px rgba(15,45,92,0.2);
-    }
-
+    .msg-user .bubble { background: var(--navy); color: #fff; border-radius: 12px 2px 12px 12px; padding: 11px 15px; display: inline-block; max-width: 85%; font-size: 0.88rem; font-weight: 500; line-height: 1.65; }
     .msg-user .msg-sender { text-align: right; color: var(--slate-mid); }
 
     .typing-wrap { margin-bottom: 14px; }
-    .typing-bubble {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 2px 12px 12px 12px;
-      padding: 10px 14px; display: inline-flex; gap: 5px; align-items: center;
-      box-shadow: var(--shadow-sm);
-    }
-
-    .typing-dot {
-      width: 6px; height: 6px; background: var(--slate-light);
-      border-radius: 50%; animation: typeBounce 1.2s ease-in-out infinite;
-    }
+    .typing-bubble { background: var(--white); border: 1px solid var(--border); border-radius: 2px 12px 12px 12px; padding: 10px 14px; display: inline-flex; gap: 5px; align-items: center; box-shadow: var(--shadow-sm); }
+    .typing-dot { width: 6px; height: 6px; background: var(--slate-light); border-radius: 50%; animation: typeBounce 1.2s ease-in-out infinite; }
     .typing-dot:nth-child(2) { animation-delay: 0.2s; }
     .typing-dot:nth-child(3) { animation-delay: 0.4s; }
+    @keyframes typeBounce { 0%, 100% { transform: translateY(0); opacity: 0.4; } 50% { transform: translateY(-4px); opacity: 1; } }
 
-    @keyframes typeBounce {
-      0%, 100% { transform: translateY(0); opacity: 0.4; }
-      50%       { transform: translateY(-4px); opacity: 1; }
-    }
-
-    .chat-footer {
-      background: var(--white); border: 1px solid var(--border);
-      border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      padding: 14px 16px; display: flex; gap: 10px;
-      box-shadow: 0 4px 12px rgba(15,45,92,0.08);
-    }
-
+    .chat-footer { background: var(--white); border: 1px solid var(--border); border-top: none; border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 14px 16px; display: flex; gap: 10px; }
     .chat-footer input { flex: 1; border-radius: var(--radius-sm); padding: 10px 14px; font-size: 0.88rem; }
 
-    .complete-panel {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: 0 0 var(--radius-lg) var(--radius-lg);
-      padding: 40px 32px; text-align: center;
-    }
-
-    .complete-icon {
-      width: 64px; height: 64px;
-      background: var(--success-bg); border: 2px solid #a7f3d0;
-      border-radius: 50%;
-      display: flex; align-items: center; justify-content: center;
-      font-size: 1.6rem; margin: 0 auto 18px;
-      animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1);
-    }
-
+    .complete-panel { background: var(--white); border: 1px solid var(--border); border-radius: 0 0 var(--radius-lg) var(--radius-lg); padding: 40px 32px; text-align: center; }
+    .complete-icon { width: 64px; height: 64px; background: var(--success-bg); border: 2px solid #a7f3d0; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.6rem; margin: 0 auto 18px; animation: popIn 0.4s cubic-bezier(0.34,1.56,0.64,1); }
     @keyframes popIn { from { transform: scale(0); opacity: 0; } to { transform: scale(1); opacity: 1; } }
-
     .complete-title { font-family: 'Playfair Display', serif; font-size: 1.4rem; color: var(--navy); margin-bottom: 8px; }
-    .complete-sub { font-size: 0.85rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 20px; }
+    .complete-sub   { font-size: 0.85rem; color: var(--text-muted); font-family: 'IBM Plex Mono', monospace; margin-bottom: 20px; }
 
-    /* ── RESPONSE CARDS ── */
-    .response-card {
-      background: var(--white); border: 1px solid var(--border);
-      border-radius: var(--radius-lg); padding: 20px;
-      margin-bottom: 14px; box-shadow: var(--shadow-sm);
-      transition: box-shadow 0.15s;
-    }
-
+    /* ── RESPONSES ── */
+    .response-card { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius-lg); padding: 20px; margin-bottom: 14px; box-shadow: var(--shadow-sm); transition: box-shadow 0.15s; }
     .response-card:hover { box-shadow: var(--shadow-md); }
-
-    .response-meta {
-      display: flex; align-items: center; justify-content: space-between;
-      margin-bottom: 16px; padding-bottom: 14px;
-      border-bottom: 1px solid var(--border);
-    }
-
+    .response-meta { display: flex; align-items: center; justify-content: space-between; margin-bottom: 16px; padding-bottom: 14px; border-bottom: 1px solid var(--border); }
     .response-name  { font-weight: 600; font-size: 0.92rem; color: var(--navy); }
     .response-email { font-family: 'IBM Plex Mono', monospace; font-size: 0.73rem; color: var(--text-muted); }
     .response-time  { font-family: 'IBM Plex Mono', monospace; font-size: 0.73rem; color: var(--text-muted); }
-
     .qa-grid { display: grid; grid-template-columns: repeat(3,1fr); gap: 14px; }
-
     .qa-item { background: var(--surface); border: 1px solid var(--border); border-radius: var(--radius-md); padding: 12px; }
     .qa-q { font-size: 0.68rem; color: var(--blue); font-family: 'IBM Plex Mono', monospace; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 6px; font-weight: 500; }
     .qa-a { font-size: 0.85rem; color: var(--text); line-height: 1.5; }
@@ -624,29 +347,19 @@
     .divider { height: 1px; background: var(--border); margin: 20px 0; }
     .section-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
     .section-header h2 { margin: 0; }
-    .tag { display: inline-block; padding: 2px 8px; background: var(--blue-light); color: var(--blue); border-radius: 4px; font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; }
+    .tag  { display: inline-block; padding: 2px 8px; background: var(--blue-light); color: var(--blue); border-radius: 4px; font-size: 0.7rem; font-family: 'IBM Plex Mono', monospace; }
     .flex-row { display: flex; gap: 10px; align-items: center; }
     .hidden { display: none !important; }
-    .step-list {}
     .step-item { display: flex; gap: 12px; padding: 10px 0; border-bottom: 1px solid var(--border); align-items: flex-start; font-size: 0.85rem; }
     .step-item:last-child { border-bottom: none; }
     .step-num { width: 22px; height: 22px; background: var(--navy); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 0.7rem; font-weight: 700; flex-shrink: 0; margin-top: 1px; }
     .empty-state { text-align: center; padding: 50px 20px; color: var(--text-muted); }
     .empty-icon { font-size: 2.5rem; margin-bottom: 10px; opacity: 0.35; }
     .empty-text { font-family: 'IBM Plex Mono', monospace; font-size: 0.82rem; }
-    .code-block { background: #0f1923; border-radius: var(--radius-md); padding: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: #7dd3fc; line-height: 1.7; overflow-x: auto; margin-top: 10px; }
+    .code-block { background: #0f1923; border-radius: var(--radius-md); padding: 16px; font-family: 'IBM Plex Mono', monospace; font-size: 0.78rem; color: #7dd3fc; line-height: 1.7; overflow-x: auto; }
 
     /* ── TOAST ── */
-    .toast {
-      position: fixed; bottom: 28px; right: 28px;
-      background: var(--navy); color: #fff;
-      padding: 11px 20px; border-radius: var(--radius-md);
-      font-size: 0.83rem; font-weight: 500;
-      box-shadow: var(--shadow-lg);
-      transform: translateY(80px); opacity: 0;
-      transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1);
-      z-index: 9999; border-left: 3px solid var(--blue-mid);
-    }
+    .toast { position: fixed; bottom: 28px; right: 28px; background: var(--navy); color: #fff; padding: 11px 20px; border-radius: var(--radius-md); font-size: 0.83rem; font-weight: 500; box-shadow: var(--shadow-lg); transform: translateY(80px); opacity: 0; transition: all 0.3s cubic-bezier(0.34,1.56,0.64,1); z-index: 9999; border-left: 3px solid var(--blue-mid); }
     .toast.show { transform: translateY(0); opacity: 1; }
 
     @media (max-width: 768px) {
@@ -654,37 +367,66 @@
       .page { padding: 20px 16px; }
       .grid-2, .grid-3, .qa-grid, .role-info-grid { grid-template-columns: 1fr; }
       .page-title { font-size: 1.4rem; }
-      .who-card { padding: 32px 20px; }
+      .who-card, .setup-card { padding: 32px 20px; }
     }
   </style>
 </head>
 <body>
 
-<!-- ═══════════════════════════════════════
-     WHO ARE YOU SCREEN
-════════════════════════════════════════ -->
-<div id="who-screen" class="who-screen">
-  <div class="who-card">
-    <div class="who-logo">📋</div>
-    <div class="who-title">DailyDash</div>
-    <div class="who-sub">// select your name to continue</div>
-    <div class="who-members" id="who-members-list">
-      <div class="who-empty">No team members added yet.<br/>Ask your admin to set up the team.</div>
+<!-- LOADING SCREEN -->
+<div id="loading-screen" class="loading-screen">
+  <div class="loading-logo">🚀</div>
+  <div class="loading-title">Daily Dash</div>
+  <div class="loading-sub">// loading your daily check-ins</div>
+  <div class="loading-spinner"></div>
+  <div class="loading-status" id="loading-status">Loading team data…</div>
+</div>
+
+<!-- SETUP SCREEN (shown when script URL not configured) -->
+<div id="setup-screen" class="setup-screen hidden">
+  <div class="setup-card">
+    <div class="setup-logo">🚀</div>
+    <div class="setup-title">Welcome to Daily Dash</div>
+    <div class="setup-sub">// connect your Google Sheet to get started</div>
+
+    <div class="field">
+      <label>Apps Script Web App URL</label>
+      <input type="text" id="setup-url" placeholder="https://script.google.com/macros/s/.../exec" />
+    </div>
+    <button class="btn btn-primary btn-full" onclick="saveSetup()" style="margin-bottom:24px">Connect & Continue</button>
+
+    <div class="divider"></div>
+    <p style="font-size:0.82rem; color:var(--text-muted); margin-bottom:16px">Haven't set up Apps Script yet? Follow these steps:</p>
+    <div>
+      <div class="step-item"><div class="step-num">1</div><div>Create a new Google Sheet</div></div>
+      <div class="step-item"><div class="step-num">2</div><div>Go to <strong>Extensions → Apps Script</strong></div></div>
+      <div class="step-item"><div class="step-num">3</div><div>Paste the new Apps Script code (get it from Admin panel after setup)</div></div>
+      <div class="step-item"><div class="step-num">4</div><div><strong>Deploy → New deployment → Web App</strong> → Anyone → Deploy</div></div>
+      <div class="step-item"><div class="step-num">5</div><div>Paste the Web App URL above</div></div>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     MAIN APP (hidden until user selected)
-════════════════════════════════════════ -->
+<!-- WHO ARE YOU SCREEN -->
+<div id="who-screen" class="who-screen hidden">
+  <div class="who-card">
+    <div class="who-logo">🚀</div>
+    <div class="who-title">Daily Dash</div>
+    <div class="who-sub" id="who-date">// select your name to begin</div>
+    <div class="who-members" id="who-members-list">
+      <div class="empty-state" style="padding:20px">
+        <div class="loading-spinner" style="margin:0 auto 10px; border-top-color:var(--blue-mid)"></div>
+        <div class="empty-text">Loading team…</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN APP -->
 <div id="main-app" class="hidden">
 
-<!-- NAV -->
 <nav>
-  <div class="logo">
-    <div class="logo-mark">📋</div>
-    DailyDash
-  </div>
+  <div class="logo"><div class="logo-mark">🚀</div>Daily Dash</div>
   <div class="nav-right">
     <div class="nav-tabs">
       <button class="nav-tab hidden-tab" id="tab-admin"     onclick="switchTab('admin')">Admin</button>
@@ -701,71 +443,51 @@
 
 <div class="toast" id="toast"></div>
 
-<!-- ═══════════════════════════════════════
-     ADMIN PAGE
-════════════════════════════════════════ -->
+<!-- ── ADMIN PAGE ── -->
 <div class="page" id="page-admin">
-  <div style="display:flex; align-items:flex-start; justify-content:space-between; margin-bottom:4px">
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
     <div>
-      <div class="page-title">Team Administration</div>
-      <div class="page-subtitle">// configure members, roles, questions & storage</div>
+      <div class="page-title">Team Administration — Daily Dash</div>
+      <div class="page-subtitle">// manage your team and daily check-in questions</div>
+    </div>
+    <div id="admin-sync-bar" class="sync-bar synced" style="margin:8px 0 0">
+      <span>✓</span><span>Synced with Sheets</span>
     </div>
   </div>
 
-  <!-- Role Permissions Info -->
+  <!-- Role info -->
   <div class="role-info-grid">
     <div class="role-info-card admin">
       <div class="role-info-title">👑 Admin</div>
-      <div class="role-info-perms">
-        ✓ Full admin access<br/>
-        ✓ Check-in<br/>
-        ✓ View dashboard<br/>
-        ✓ Manage team
-      </div>
+      <div class="role-info-perms">✓ Full admin access<br/>✓ Check-in<br/>✓ View dashboard<br/>✓ Manage team</div>
     </div>
     <div class="role-info-card manager">
       <div class="role-info-title">👀 Manager</div>
-      <div class="role-info-perms">
-        ✗ No admin access<br/>
-        ✗ No check-in<br/>
-        ✓ View dashboard<br/>
-        ✗ Cannot manage team
-      </div>
+      <div class="role-info-perms">✗ No admin access<br/>✗ No check-in<br/>✓ View dashboard<br/>✗ Cannot manage team</div>
     </div>
     <div class="role-info-card member">
       <div class="role-info-title">✏️ Team Member</div>
-      <div class="role-info-perms">
-        ✗ No admin access<br/>
-        ✓ Check-in<br/>
-        ✓ View dashboard<br/>
-        ✗ Cannot manage team
-      </div>
+      <div class="role-info-perms">✗ No admin access<br/>✓ Check-in<br/>✓ View dashboard<br/>✗ Cannot manage team</div>
     </div>
   </div>
 
-  <!-- Google Sheets Banner -->
+  <!-- Script URL config -->
   <div class="sheet-banner">
     <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
-      <h2>Google Sheets Integration</h2>
+      <h2>Google Sheets Connection</h2>
       <div class="sheet-status-row" style="margin:0">
-        <div class="status-dot dot-yellow" id="sheet-dot"></div>
-        <span id="sheet-status-text">Not configured</span>
+        <div class="status-dot dot-green" id="sheet-dot"></div>
+        <span id="sheet-status-text">Connected</span>
       </div>
     </div>
-    <div class="sheet-banner-sub">Responses will be saved automatically to your spreadsheet</div>
-    <div class="grid-2" style="margin-bottom:14px">
-      <div class="field" style="margin:0">
-        <label>Sheet ID</label>
-        <input type="text" id="sheetId" placeholder="1BxiMVs0XRA5nFMdKvBdBZjgmUUqptlbs74OgVE2upms" />
-      </div>
-      <div class="field" style="margin:0">
-        <label>Apps Script Web App URL</label>
-        <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
-      </div>
+    <div class="sheet-banner-sub">All team data and daily check-in records are stored in Google Sheets</div>
+    <div class="field" style="margin-bottom:14px">
+      <label>Apps Script Web App URL</label>
+      <input type="text" id="scriptUrl" placeholder="https://script.google.com/macros/s/.../exec" />
     </div>
     <div class="flex-row">
-      <button class="btn btn-ghost-white btn-sm" onclick="saveSheetConfig()">Save Configuration</button>
-      <button class="btn btn-ghost-white btn-sm" onclick="testSheetConnection()">Test Connection</button>
+      <button class="btn btn-ghost-white btn-sm" onclick="updateScriptUrl()">Update URL</button>
+      <button class="btn btn-ghost-white btn-sm" onclick="forceSyncTeam()">↺ Sync Now</button>
     </div>
   </div>
 
@@ -793,20 +515,11 @@
     </div>
 
     <div class="card">
-      <div class="card-header"><h2>Daily Tracker Questions</h2></div>
-      <div class="field">
-        <label>Question 1</label>
-        <input type="text" id="q1" value="What did you work on yesterday?" />
-      </div>
-      <div class="field">
-        <label>Question 2</label>
-        <input type="text" id="q2" value="What are you working on today?" />
-      </div>
-      <div class="field">
-        <label>Question 3</label>
-        <input type="text" id="q3" value="Do you have any blockers?" />
-      </div>
-      <button class="btn btn-secondary btn-sm" onclick="saveQuestions()">Save Questions</button>
+      <div class="card-header"><h2>Check-in Questions</h2></div>
+      <div class="field"><label>Question 1</label><input type="text" id="q1" /></div>
+      <div class="field"><label>Question 2</label><input type="text" id="q2" /></div>
+      <div class="field"><label>Question 3</label><input type="text" id="q3" /></div>
+      <button class="btn btn-secondary btn-sm" onclick="saveQuestions()">Save & Sync Check-in Questions</button>
     </div>
   </div>
 
@@ -817,583 +530,797 @@
       <span class="tag" id="member-count">0 members</span>
     </div>
     <div id="member-list">
-      <div class="empty-state">
-        <div class="empty-icon">👥</div>
-        <div class="empty-text">No members yet. Add your first team member above.</div>
-      </div>
+      <div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>
     </div>
   </div>
 
-  <!-- Check-in Links -->
+  <!-- Daily Check-in Links -->
   <div class="card">
     <div class="card-header">
-      <h2>Check-in Links</h2>
+      <h2>Daily Check-in Links</h2>
       <button class="btn btn-navy btn-sm" onclick="generateLinks()">Generate Links</button>
     </div>
-    <p style="color:var(--text-muted); font-size:0.82rem; margin-bottom:16px; font-family:'IBM Plex Mono',monospace;">
-      Share these unique links with each team member for today's check-ins.
-    </p>
-    <div id="links-list">
-      <div class="empty-state" style="padding:30px">
-        <div class="empty-text">Click "Generate Links" to create check-in links.</div>
-      </div>
-    </div>
+    <p style="color:var(--text-muted);font-size:0.82rem;margin-bottom:16px;font-family:'IBM Plex Mono',monospace;">Share these unique links with your team. Each person uses their own link to submit their daily progress.</p>
+    <div id="links-list"><div class="empty-state" style="padding:20px"><div class="empty-text">Click "Generate Links"</div></div></div>
   </div>
 
-  <!-- Setup Guide -->
+  <!-- Apps Script Code -->
   <div class="card">
-    <div class="card-header"><h2>Apps Script Setup Guide</h2></div>
-    <div class="step-list">
-      <div class="step-item"><div class="step-num">1</div><div>Create a new <strong>Google Sheet</strong> and copy its ID from the URL</div></div>
-      <div class="step-item"><div class="step-num">2</div><div>Go to <strong>Extensions → Apps Script</strong></div></div>
-      <div class="step-item"><div class="step-num">3</div><div>Paste the code below and save <strong>(Ctrl+S)</strong></div></div>
-      <div class="step-item"><div class="step-num">4</div><div>Click <strong>Deploy → New deployment → Web App</strong></div></div>
-      <div class="step-item"><div class="step-num">5</div><div>Set <strong>Execute as: Me</strong> and <strong>Who has access: Anyone</strong></div></div>
-      <div class="step-item"><div class="step-num">6</div><div>Copy the Web App URL and paste it above</div></div>
-    </div>
-    <div class="divider"></div>
-    <label>Apps Script Code</label>
-    <textarea id="appsScriptCode" readonly class="code-block" style="height:200px; border:none; width:100%">function doPost(e) {
-  try {
-    var spreadsheet = SpreadsheetApp.getActiveSpreadsheet();
-    var sheet = spreadsheet.getSheetByName("CheckIns");
-    if (!sheet) { sheet = spreadsheet.insertSheet("CheckIns"); }
-    if (sheet.getLastRow() === 0) {
-      sheet.appendRow(["Timestamp","Name","Email","Q1 - Yesterday","Q2 - Today","Q3 - Blockers"]);
-      sheet.getRange(1,1,1,6).setFontWeight("bold").setBackground("#1a56a0").setFontColor("#ffffff");
-    }
-    var data = JSON.parse(e.postData.contents);
-    sheet.appendRow([new Date().toLocaleString(), data.name||"", data.email||"", data.answers[0]||"", data.answers[1]||"", data.answers[2]||""]);
-    return ContentService.createTextOutput(JSON.stringify({status:"success"})).setMimeType(ContentService.MimeType.JSON);
-  } catch(err) {
-    return ContentService.createTextOutput(JSON.stringify({status:"error",message:err.toString()})).setMimeType(ContentService.MimeType.JSON);
-  }
-}
-function doGet(e) {
-  return ContentService.createTextOutput(JSON.stringify({status:"ok",message:"DailyDash connected!"})).setMimeType(ContentService.MimeType.JSON);
-}</textarea>
+    <div class="card-header"><h2>Apps Script Code (Updated Version)</h2></div>
+    <p style="font-size:0.82rem;color:var(--text-muted);margin-bottom:12px;">Replace your existing Apps Script code with this new version, then redeploy as a new version.</p>
+    <textarea id="appsScriptCode" readonly class="code-block" style="height:220px;border:none;width:100%;display:block"></textarea>
     <button class="btn btn-secondary btn-sm" onclick="copyScript()" style="margin-top:10px">Copy Code</button>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     CHECK-IN PAGE
-════════════════════════════════════════ -->
+<!-- ── CHECK-IN PAGE ── -->
 <div class="page" id="page-checkin">
   <div class="chat-wrapper">
-
-    <div id="chat-interface">
-      <div class="chat-topbar">
-        <div class="bot-avatar-wrap">🤖</div>
-        <div>
-          <div class="bot-info-name" id="chat-greeting">FE DailyTrackerBot</div>
-          <div class="bot-info-sub">Daily Progress · 3 questions</div>
-        </div>
+    <div class="chat-topbar">
+      <div class="bot-avatar-wrap">🤖</div>
+      <div>
+        <div class="bot-info-name" id="chat-greeting">Daily Dash</div>
+        <div class="bot-info-sub">Daily check-in · 3 questions</div>
       </div>
-
-      <div class="progress-row">
-        <span class="progress-label" id="progress-label">0 / 3</span>
-        <div class="progress-track">
-          <div class="progress-fill" id="progress-fill" style="width:0%"></div>
-        </div>
-      </div>
-
-      <div class="chat-body" id="chat-messages"></div>
-
-      <div class="chat-footer" id="chat-input-row">
-        <input type="text" id="chat-input" placeholder="Type your response…" onkeydown="if(event.key==='Enter') sendAnswer()" />
-        <button class="btn btn-primary" onclick="sendAnswer()">Send</button>
-      </div>
-
-      <div class="complete-panel hidden" id="complete-state">
-        <div class="complete-icon">✓</div>
-        <div class="complete-title">Check-In Complete</div>
-        <div class="complete-sub">Your responses have been recorded. See you tomorrow.</div>
-        <div id="sheet-save-status" style="margin-bottom:18px; font-size:0.8rem; font-family:'IBM Plex Mono',monospace; color:var(--text-muted)"></div>
-        <button class="btn btn-secondary" onclick="resetCheckin()">Submit Again</button>
-      </div>
+    </div>
+    <div class="progress-row">
+      <span class="progress-label" id="progress-label">0 / 3</span>
+      <div class="progress-track"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+    </div>
+    <div class="chat-body" id="chat-messages"></div>
+    <div class="chat-footer" id="chat-input-row">
+      <input type="text" id="chat-input" placeholder="Type your response…" onkeydown="if(event.key==='Enter') sendAnswer()" />
+      <button class="btn btn-primary" onclick="sendAnswer()">Send</button>
+    </div>
+    <div class="complete-panel hidden" id="complete-state">
+      <div class="complete-icon">✓</div>
+      <div class="complete-title">Check-in Complete</div>
+      <div class="complete-sub">Your progress has been recorded. Keep it up! 🎯</div>
+      <div id="sheet-save-status" style="margin-bottom:18px;font-size:0.8rem;font-family:'IBM Plex Mono',monospace;color:var(--text-muted)"></div>
+      <button class="btn btn-secondary" onclick="resetCheckin()">New Check-in</button>
     </div>
   </div>
 </div>
 
-<!-- ═══════════════════════════════════════
-     DASHBOARD PAGE
-════════════════════════════════════════ -->
+<!-- ── DASHBOARD PAGE ── -->
 <div class="page" id="page-dashboard">
-  <div class="page-title">FE Daily Dashboard</div>
-  <div class="page-subtitle">// Today's Check-Ins</div>
+  <div style="display:flex;align-items:flex-start;justify-content:space-between;margin-bottom:4px">
+    <div>
+      <div class="page-title">Daily Dashboard</div>
+      
+    </div>
+  </div>
 
   <div class="grid-3" style="margin-bottom:24px">
-    <div class="stat-card">
-      <div class="stat-value" id="stat-total">0</div>
-      <div class="stat-label">Responses Today</div>
-    </div>
-    <div class="stat-card navy">
-      <div class="stat-value" id="stat-team">0</div>
-      <div class="stat-label">Team Members</div>
-    </div>
-    <div class="stat-card slate">
-      <div class="stat-value" id="stat-pending">0</div>
-      <div class="stat-label">Pending</div>
-    </div>
+    <div class="stat-card"><div class="stat-value" id="stat-total">—</div><div class="stat-label">Responses Today</div></div>
+    <div class="stat-card navy"><div class="stat-value" id="stat-team">—</div><div class="stat-label">Team Members</div></div>
+    <div class="stat-card slate"><div class="stat-value" id="stat-pending">—</div><div class="stat-label">Pending</div></div>
   </div>
 
   <div class="section-header">
     <h2>Submissions</h2>
     <div class="flex-row">
       <button class="btn btn-secondary btn-sm" onclick="exportCSV()">Export CSV</button>
-      <button class="btn btn-navy btn-sm" onclick="loadDashboard()">Refresh</button>
+      <button class="btn btn-navy btn-sm" onclick="loadDashboard()">↺ Refresh</button>
     </div>
   </div>
 
+  <div id="dashboard-loading" class="sync-bar syncing hidden">
+    <div class="sync-spinner"></div><span>Loading check-in records…</span>
+  </div>
+
   <div id="responses-list">
-    <div class="empty-state">
-      <div class="empty-icon">📋</div>
-      <div class="empty-text">No responses yet today.</div>
-    </div>
+    <div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No check-ins recorded today. Share links with your team!</div></div>
   </div>
 </div>
 
 </div><!-- /main-app -->
 
 <script>
-  // ══════════════════════════════════════
-  // STATE
-  // ══════════════════════════════════════
-  let state = {
-    members: [],
-    questions: [
-      "What did you work on yesterday?",
-      "What are you working on today?",
-      "Do you have any blockers?"
-    ],
-    responses: [],
-    sheetId: '',
-    scriptUrl: ''
-  };
+// ══════════════════════════════════════
+// CONFIG & STATE
+// ══════════════════════════════════════
+const APPS_SCRIPT_CODE = `function doGet(e) {
+  try {
+    var action = e.parameter.action;
+    if (action === "getTeam")      return respond(getTeam());
+    if (action === "getResponses") return respond(getResponses(e.parameter.date || getTodayStr()));
+    if (action === "debug")        return respond(debugSheet());
+    return respond({ status: "ok", message: "Daily Dash connected!" });
+  } catch(err) { return respond({ status: "error", message: err.toString() }); }
+}
 
-  let currentUser  = null;   // the logged-in user object
-  let checkinState = { answers: [], questionIndex: 0 };
+function doPost(e) {
+  try {
+    var data = JSON.parse(e.postData.contents);
+    if (data.action === "saveTeam")      { saveTeam(data.members, data.questions); return respond({ status: "success" }); }
+    if (data.action === "saveResponse")  { saveResponse(data.response); return respond({ status: "success" }); }
+    if (data.action === "clearResponse") { clearResponse(data.email, data.date); return respond({ status: "success" }); }
+    return respond({ status: "error", message: "Unknown action" });
+  } catch(err) { return respond({ status: "error", message: err.toString() }); }
+}
 
-  const COLORS = ['#0f2d5c','#2563c4','#1a7f5a','#6d28d9','#b45309','#1a56a0'];
+var SS = SpreadsheetApp.getActiveSpreadsheet();
 
-  const ROLE_TABS = {
-    admin:   ['admin','checkin','dashboard'],
-    manager: ['dashboard'],
-    member:  ['checkin','dashboard']
-  };
+function getTeam() {
+  var sheet = getOrCreate("Team");
+  var rows = sheet.getDataRange().getDisplayValues();
+  if (rows.length <= 1) return { status:"ok", members:[], questions:defaultQ() };
+  var members = [];
+  for (var i = 1; i < rows.length; i++) {
+    if (rows[i][0]) members.push({ id:rows[i][0], name:rows[i][1], email:rows[i][2], role:rows[i][3], color:rows[i][4] });
+  }
+  var qs = defaultQ();
+  try {
+    var cs = getOrCreate("Config").getDataRange().getDisplayValues();
+    for (var i = 1; i < cs.length; i++) { if (cs[i][0] === "questions") qs = JSON.parse(cs[i][1]); }
+  } catch(e) {}
+  return { status:"ok", members:members, questions:qs };
+}
 
-  function loadState() {
-    const s = localStorage.getItem('standupbot_v4');
-    if (s) state = { ...state, ...JSON.parse(s) };
+function saveTeam(members, questions) {
+  var sheet = getOrCreate("Team");
+  sheet.clearContents();
+  sheet.appendRow(["ID","Name","Email","Role","Color"]);
+  sheet.getRange(1,1,1,5).setFontWeight("bold").setBackground("#0f2d5c").setFontColor("#fff");
+  members.forEach(function(m) { sheet.appendRow([m.id, m.name, m.email, m.role, m.color]); });
+  if (questions) {
+    var cs = getOrCreate("Config");
+    cs.clearContents();
+    cs.appendRow(["Setting","Value"]);
+    cs.getRange(1,1,1,2).setFontWeight("bold").setBackground("#4a5568").setFontColor("#fff");
+    // Store machine-readable JSON for the app
+    cs.appendRow(["questions", JSON.stringify(questions)]);
+    // Also display questions in plain readable rows
+    cs.appendRow([""]);
+    cs.appendRow(["── Active Check-in Questions ──",""]);
+    cs.getRange(cs.getLastRow(),1).setFontWeight("bold").setFontColor("#1a56a0");
+    questions.forEach(function(q, i) {
+      cs.appendRow(["Question " + (i+1), q]);
+    });
+  }
+}
+
+function getResponses(date) {
+  var sheet = getOrCreate("Standups");
+  var rows = sheet.getDataRange().getDisplayValues();
+  if (rows.length <= 1) return { status:"ok", responses:[] };
+  // Get questions from Config to attach to responses
+  var qs = defaultQ();
+  try {
+    var cs = getOrCreate("Config").getDataRange().getDisplayValues();
+    for (var j = 1; j < cs.length; j++) { if (cs[j][0] === "questions") qs = JSON.parse(cs[j][1]); }
+  } catch(e) {}
+  var out = [];
+  for (var i = 1; i < rows.length; i++) {
+    var rowDate = rows[i][0];
+    if (!rowDate) continue;
+    if (date && rowDate.trim() !== date.trim()) continue;
+    out.push({
+      id:        rows[i][1],
+      name:      rows[i][2],
+      email:     rows[i][3],
+      answers:   [rows[i][4], rows[i][5], rows[i][6]],
+      questions: qs,
+      timestamp: rows[i][7]
+    });
+  }
+  return { status:"ok", responses:out };
+}
+
+function saveResponse(r) {
+  var sheet = getOrCreate("Standups");
+  if (sheet.getLastRow() === 0) {
+    // Slim header: Date, ID (hidden), Name, Email (hidden), Q1, Q2, Q3, Timestamp
+    sheet.appendRow(["Date","ID","Name","Email","Q1 Answer","Q2 Answer","Q3 Answer","Timestamp"]);
+    sheet.getRange(1,1,1,8).setFontWeight("bold").setBackground("#1a56a0").setFontColor("#fff");
+    // Hide ID (col B) and Email (col D)
+    sheet.hideColumns(2);
+    sheet.hideColumns(4);
+  }
+  var today = getTodayStr();
+  var nextRow = sheet.getLastRow() + 1;
+  sheet.appendRow([today, r.id||"", r.name||"", r.email||"", r.answers[0]||"", r.answers[1]||"", r.answers[2]||"", r.timestamp||new Date().toISOString()]);
+  // Force date column to plain text
+  sheet.getRange(nextRow, 1).setNumberFormat("@").setValue(today);
+}
+
+function clearResponse(email, date) {
+  var sheet = getOrCreate("Standups");
+  var rows = sheet.getDataRange().getDisplayValues();
+  var today = date || getTodayStr();
+  for (var i = rows.length - 1; i >= 1; i--) {
+    // Email is still stored in col D (index 3) even though hidden
+    if (rows[i][3] === email && rows[i][0].trim() === today.trim()) {
+      sheet.deleteRow(i + 1);
+    }
+  }
+}
+
+function debugSheet() {
+  var sheet = getOrCreate("Standups");
+  var rows = sheet.getDataRange().getDisplayValues();
+  return { status:"ok", today: getTodayStr(), rowCount: rows.length, rows: rows.slice(0,5) };
+}
+
+function getOrCreate(name) { var s = SS.getSheetByName(name); return s || SS.insertSheet(name); }
+function getTodayStr() { var d = new Date(); var m = String(d.getMonth()+1).padStart(2,'0'); var day = String(d.getDate()).padStart(2,'0'); return d.getFullYear()+"-"+m+"-"+day; }
+function defaultQ() { return ["What did you work on yesterday?","What are you working on today?","Do you have any blockers?"]; }
+function respond(data) { return ContentService.createTextOutput(JSON.stringify(data)).setMimeType(ContentService.MimeType.JSON); }`;
+
+let scriptUrl  = localStorage.getItem('sb_scriptUrl') || '';
+let currentUser  = null;
+let teamData     = { members: [], questions: ["What did you work on yesterday?", "What are you working on today?", "Do you have any blockers?"] };
+let todayResponses = [];
+let checkinState = { answers: [], questionIndex: 0 };
+
+const COLORS = ['#0f2d5c','#2563c4','#1a7f5a','#6d28d9','#b45309','#1a56a0'];
+const ROLE_TABS = { admin: ['admin','checkin','dashboard'], manager: ['dashboard'], member: ['checkin','dashboard'] };
+
+// ══════════════════════════════════════
+// API — all calls go through here
+// ══════════════════════════════════════
+async function api(params) {
+  const url = scriptUrl;
+  if (!url) throw new Error('No script URL configured');
+
+  if (params.method === 'GET') {
+    const qs = new URLSearchParams({ ...params.query, _t: Date.now() }).toString();
+    const res = await fetch(`${url}?${qs}`, { cache: 'no-store' });
+    return await res.json();
+  } else {
+    await fetch(url, { method: 'POST', mode: 'no-cors', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(params.body) });
+    return { status: 'success' }; // no-cors can't read response
+  }
+}
+
+// ══════════════════════════════════════
+// INIT — load everything from Sheets
+// ══════════════════════════════════════
+async function init() {
+  setLoadingStatus('Checking configuration…');
+
+  // No URL configured — show setup screen
+  if (!scriptUrl) {
+    hideLoading();
+    show('setup-screen');
+    return;
   }
 
-  function saveState() {
-    localStorage.setItem('standupbot_v4', JSON.stringify(state));
-  }
+  setLoadingStatus('Connecting to Google Sheets…');
 
-  // ══════════════════════════════════════
-  // WHO ARE YOU SCREEN
-  // ══════════════════════════════════════
-  function renderWhoScreen() {
-    const list = document.getElementById('who-members-list');
-    if (state.members.length === 0) {
-      // Show a minimal admin bootstrap button if no members exist
-      list.innerHTML = `
-        <div class="who-empty">No team members yet.</div>
-        <button class="btn btn-primary btn-full" style="margin-top:12px" onclick="bootstrapAdmin()">
-          Set up as Admin
-        </button>`;
-      return;
+  try {
+    const data = await api({ method: 'GET', query: { action: 'getTeam' } });
+
+    if (data.status !== 'ok') throw new Error(data.message || 'Failed to load team');
+
+    teamData.members   = data.members   || [];
+    teamData.questions = data.questions || teamData.questions;
+
+    setLoadingStatus('Team loaded ✓');
+    await new Promise(r => setTimeout(r, 400));
+
+    hideLoading();
+
+    // Check for direct link
+    const urlUser = new URLSearchParams(window.location.search).get('user');
+    if (urlUser) {
+      const member = teamData.members.find(m => m.id === urlUser);
+      if (member) { currentUser = member; enterApp(); return; }
     }
 
-    list.innerHTML = state.members.map(m => {
-      const initials = m.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-      const roleLabel = { admin:'👑 Admin', manager:'👀 Manager', member:'✏️ Team Member' }[m.role] || m.role;
-      const badgeClass = { admin:'badge-admin', manager:'badge-manager', member:'badge-member' }[m.role] || 'badge-member';
-      return `
-        <button class="who-member-btn" onclick="selectUser('${m.id}')">
-          <div class="avatar" style="background:${m.color}; width:40px; height:40px; font-size:0.85rem">${initials}</div>
-          <div class="who-member-info">
-            <div class="who-member-name">${m.name}</div>
-            <div class="who-member-email">${m.email}</div>
-          </div>
-          <span class="who-role-badge ${badgeClass}">${roleLabel}</span>
-        </button>`;
-    }).join('');
-  }
-
-  function bootstrapAdmin() {
-    // First-time setup: create a default admin
-    const name = prompt('Enter your name (you will be set as Admin):');
-    if (!name || !name.trim()) return;
-    const email = prompt('Enter your email:');
-    if (!email || !email.trim()) return;
-    state.members.push({
-      id: Date.now().toString(),
-      name: name.trim(), email: email.trim(),
-      role: 'admin',
-      color: COLORS[0]
-    });
-    saveState();
+    show('who-screen');
     renderWhoScreen();
-    toast('Admin account created!');
+
+  } catch(err) {
+    setLoadingStatus('❌ ' + err.message);
+    setTimeout(() => {
+      hideLoading();
+      show('setup-screen');
+    }, 2000);
+  }
+}
+
+function setLoadingStatus(msg) {
+  document.getElementById('loading-status').textContent = msg;
+}
+
+function hideLoading() {
+  const el = document.getElementById('loading-screen');
+  el.classList.add('fade-out');
+  setTimeout(() => el.classList.add('hidden'), 400);
+}
+
+function show(id) {
+  document.getElementById(id).classList.remove('hidden');
+}
+
+// ══════════════════════════════════════
+// SETUP SCREEN
+// ══════════════════════════════════════
+async function saveSetup() {
+  const url = document.getElementById('setup-url').value.trim();
+  if (!url) { alert('Please enter the Apps Script URL'); return; }
+  scriptUrl = url;
+  localStorage.setItem('sb_scriptUrl', url);
+  document.getElementById('setup-screen').classList.add('hidden');
+  document.getElementById('loading-screen').classList.remove('hidden');
+  document.getElementById('loading-screen').classList.remove('fade-out');
+  await init();
+}
+
+// ══════════════════════════════════════
+// WHO ARE YOU
+// ══════════════════════════════════════
+function renderWhoScreen() {
+  const today = new Date().toLocaleDateString('en-US', { weekday:'long', month:'long', day:'numeric' });
+  document.getElementById('who-date').textContent = `// ${today}`;
+
+  const list = document.getElementById('who-members-list');
+  if (teamData.members.length === 0) {
+    list.innerHTML = `
+      <div style="text-align:left">
+        <p style="font-size:0.82rem; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; margin-bottom:16px; text-align:center;">
+          No team yet. Create your admin account to get started.
+        </p>
+        <div class="field">
+          <label>Your Full Name</label>
+          <input type="text" id="bootstrap-name" placeholder="Jane Smith" />
+        </div>
+        <div class="field">
+          <label>Your Email</label>
+          <input type="email" id="bootstrap-email" placeholder="jane@company.com" />
+        </div>
+        <button class="btn btn-primary btn-full" onclick="bootstrapAdmin()">
+          👑 Create Admin Account
+        </button>
+      </div>`;
+    return;
   }
 
-  function selectUser(id) {
-    const member = state.members.find(m => m.id === id);
-    if (!member) return;
-    currentUser = member;
-    enterApp();
-  }
+  list.innerHTML = teamData.members.map(m => {
+    const initials   = m.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const roleLabel  = { admin:'👑 Admin', manager:'👀 Manager', member:'✏️ Member' }[m.role] || m.role;
+    const badgeClass = { admin:'badge-admin', manager:'badge-manager', member:'badge-member' }[m.role] || 'badge-member';
+    return `
+      <button class="who-member-btn" onclick="selectUser('${m.id}')">
+        <div class="avatar" style="background:${m.color}; width:40px; height:40px; font-size:0.85rem">${initials}</div>
+        <div class="who-member-info">
+          <div class="who-member-name">${m.name}</div>
+          <div class="who-member-email">${m.email}</div>
+        </div>
+        <span class="who-role-badge ${badgeClass}">${roleLabel}</span>
+      </button>`;
+  }).join('');
+}
 
-  function enterApp() {
+function selectUser(id) {
+  const member = teamData.members.find(m => m.id === id);
+  if (!member) return;
+  currentUser = member;
+  document.getElementById('who-screen').classList.add('hidden');
+  enterApp();
+}
+
+async function bootstrapAdmin() {
+  const name  = document.getElementById('bootstrap-name')?.value.trim();
+  const email = document.getElementById('bootstrap-email')?.value.trim();
+  if (!name || !email) { toast('Please enter your name and email'); return; }
+
+  const adminMember = { id: Date.now().toString(), name, email, role: 'admin', color: COLORS[0] };
+  teamData.members.push(adminMember);
+
+  // Save to Sheets immediately
+  const btn = document.querySelector('#who-members-list .btn');
+  if (btn) { btn.textContent = 'Creating…'; btn.disabled = true; }
+
+  try {
+    await api({ method: 'POST', body: { action: 'saveTeam', members: teamData.members, questions: teamData.questions } });
+    currentUser = adminMember;
     document.getElementById('who-screen').classList.add('hidden');
-    document.getElementById('main-app').classList.remove('hidden');
-    setupNavForRole(currentUser.role);
-    updateUserPill();
+    enterApp();
+  } catch(e) {
+    toast('Failed to save — check your Sheets connection');
+    teamData.members = [];
+    if (btn) { btn.textContent = '👑 Create Admin Account'; btn.disabled = false; }
+  }
+}
 
-    // Navigate to default page for role
-    const defaultPage = { admin:'admin', manager:'dashboard', member:'checkin' }[currentUser.role];
-    switchTab(defaultPage);
+function switchUser() {
+  currentUser = null;
+  document.getElementById('main-app').classList.add('hidden');
+  document.getElementById('who-screen').classList.remove('hidden');
+  renderWhoScreen();
+}
 
-    // If member, auto-start their checkin
-    if (currentUser.role === 'member' || currentUser.role === 'admin') {
-      initCheckin();
-    }
+// ══════════════════════════════════════
+// NAV
+// ══════════════════════════════════════
+function enterApp() {
+  document.getElementById('main-app').classList.remove('hidden');
+  setupNavForRole(currentUser.role);
+  updateUserPill();
+  const defaultPage = { admin:'admin', manager:'dashboard', member:'checkin' }[currentUser.role];
+  switchTab(defaultPage);
+  if (currentUser.role === 'member' || currentUser.role === 'admin') initCheckin();
+  if (currentUser.role === 'admin') {
+    document.getElementById('scriptUrl').value = scriptUrl;
+    document.getElementById('appsScriptCode').value = APPS_SCRIPT_CODE;
+    renderMembers();
+    loadQuestionsUI();
+  }
+}
+
+function setupNavForRole(role) {
+  const allowed = ROLE_TABS[role] || [];
+  ['admin','checkin','dashboard'].forEach(tab => {
+    document.getElementById('tab-' + tab).classList.toggle('hidden-tab', !allowed.includes(tab));
+  });
+}
+
+function switchTab(tab) {
+  const allowed = ROLE_TABS[currentUser?.role] || [];
+  if (!allowed.includes(tab)) { toast('Access denied for your role'); return; }
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+  document.getElementById('page-' + tab).classList.add('active');
+  document.getElementById('tab-' + tab).classList.add('active');
+  if (tab === 'dashboard') loadDashboard();
+  if (tab === 'admin') refreshTodayResponses();
+}
+
+async function refreshTodayResponses() {
+  try {
+    const data = await api({ method: 'GET', query: { action: 'getResponses', date: getTodayStr() } });
+    todayResponses = data.responses || [];
+    renderMembers();
+  } catch(e) {
+    // fail silently — member list will still render with cached data
+    renderMembers();
+  }
+}
+
+function updateUserPill() {
+  if (!currentUser) return;
+  const initials   = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+  const roleLabel  = { admin:'Admin', manager:'Manager', member:'Member' }[currentUser.role];
+  const roleClass  = { admin:'role-pill-admin', manager:'role-pill-manager', member:'role-pill-member' }[currentUser.role];
+  document.getElementById('pill-avatar').style.background = currentUser.color;
+  document.getElementById('pill-avatar').textContent = initials;
+  document.getElementById('pill-name').textContent   = currentUser.name.split(' ')[0];
+  document.getElementById('pill-role').textContent   = roleLabel;
+  document.getElementById('pill-role').className     = 'user-pill-role ' + roleClass;
+}
+
+// ══════════════════════════════════════
+// ADMIN — MEMBERS
+// ══════════════════════════════════════
+async function addMember() {
+  const name  = document.getElementById('memberName').value.trim();
+  const email = document.getElementById('memberEmail').value.trim();
+  const role  = document.getElementById('memberRole').value;
+  if (!name || !email) { toast('Please enter name and email'); return; }
+  if (teamData.members.find(m => m.email === email)) { toast('Member already exists'); return; }
+
+  teamData.members.push({ id: Date.now().toString(), name, email, role, color: COLORS[teamData.members.length % COLORS.length] });
+  document.getElementById('memberName').value = '';
+  document.getElementById('memberEmail').value = '';
+  renderMembers();
+  toast('Adding member…');
+  await syncTeamToSheets();
+  toast('✓ Member added and saved to Sheets');
+}
+
+async function removeMember(id) {
+  if (id === currentUser?.id) { toast('Cannot remove yourself'); return; }
+  teamData.members = teamData.members.filter(m => m.id !== id);
+  renderMembers();
+  await syncTeamToSheets();
+  toast('✓ Member removed');
+}
+
+async function changeRole(id, newRole) {
+  const m = teamData.members.find(m => m.id === id);
+  if (!m) return;
+  m.role = newRole;
+  renderMembers();
+  await syncTeamToSheets();
+  toast(`✓ Role updated to ${newRole}`);
+}
+
+async function clearCheckin(memberId) {
+  const member = teamData.members.find(m => m.id === memberId);
+  if (!member) return;
+  if (!confirm(`Clear today's check-in for ${member.name}? They will be able to resubmit.`)) return;
+
+  toast('Clearing check-in…');
+  try {
+    await api({ method: 'POST', body: { action: 'clearResponse', email: member.email, date: getTodayStr() } });
+    todayResponses = todayResponses.filter(r => r.email !== member.email);
+    renderMembers();
+    toast(`✓ Check-in cleared for ${member.name}`);
+  } catch(e) {
+    toast('Failed to clear — check connection');
+  }
+}
+
+function renderMembers() {
+  const list = document.getElementById('member-list');
+  document.getElementById('member-count').textContent = teamData.members.length + ' member' + (teamData.members.length !== 1 ? 's' : '');
+
+  if (teamData.members.length === 0) {
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>`;
+    return;
   }
 
-  function switchUser() {
-    currentUser = null;
-    document.getElementById('main-app').classList.add('hidden');
-    document.getElementById('who-screen').classList.remove('hidden');
+  list.innerHTML = teamData.members.map(m => {
+    const initials  = m.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
+    const responded = todayResponses.some(r => r.email === m.email);
+    const roleBg    = { admin:'#e8eef8', manager:'#f3e8ff', member:'var(--success-bg)' }[m.role] || 'var(--surface)';
+    return `
+      <div class="member-row">
+        <div class="member-info">
+          <div class="avatar" style="background:${m.color}">${initials}</div>
+          <div><div class="member-name">${m.name}</div><div class="member-email">${m.email}</div></div>
+        </div>
+        <div class="flex-row">
+          <select class="role-select" style="background:${roleBg}" onchange="changeRole('${m.id}', this.value)">
+            <option value="member"  ${m.role==='member'  ?'selected':''}>✏️ Member</option>
+            <option value="manager" ${m.role==='manager' ?'selected':''}>👀 Manager</option>
+            <option value="admin"   ${m.role==='admin'   ?'selected':''}>👑 Admin</option>
+          </select>
+          <span class="badge ${responded ? 'badge-done' : 'badge-pending'}">${responded ? '✓ Done' : 'Pending'}</span>
+          ${responded ? `<button class="btn btn-secondary btn-sm" onclick="clearCheckin('${m.id}')">↺ Clear</button>` : ''}
+          <button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
+        </div>
+      </div>`;
+  }).join('');
+}
+
+// ══════════════════════════════════════
+// ADMIN — QUESTIONS
+// ══════════════════════════════════════
+function loadQuestionsUI() {
+  document.getElementById('q1').value = teamData.questions[0] || '';
+  document.getElementById('q2').value = teamData.questions[1] || '';
+  document.getElementById('q3').value = teamData.questions[2] || '';
+}
+
+async function saveQuestions() {
+  teamData.questions = [
+    document.getElementById('q1').value,
+    document.getElementById('q2').value,
+    document.getElementById('q3').value
+  ];
+  await syncTeamToSheets();
+  toast('✓ Questions saved to Sheets');
+}
+
+// ══════════════════════════════════════
+// ADMIN — SYNC
+// ══════════════════════════════════════
+async function syncTeamToSheets() {
+  setSyncBar('syncing', '↺ Syncing to Sheets…');
+  try {
+    await api({ method: 'POST', body: { action: 'saveTeam', members: teamData.members, questions: teamData.questions } });
+    setSyncBar('synced', '✓ Synced with Sheets');
+  } catch(e) {
+    setSyncBar('error', '⚠ Sync failed — check connection');
+  }
+}
+
+async function forceSyncTeam() {
+  setSyncBar('syncing', '↺ Reloading from Sheets…');
+  try {
+    const data = await api({ method: 'GET', query: { action: 'getTeam' } });
+    teamData.members   = data.members   || [];
+    teamData.questions = data.questions || teamData.questions;
+    renderMembers(); loadQuestionsUI();
+    setSyncBar('synced', '✓ Synced with Sheets');
     renderWhoScreen();
+    toast('✓ Team reloaded from Sheets');
+  } catch(e) {
+    setSyncBar('error', '⚠ Reload failed');
   }
+}
 
-  // ══════════════════════════════════════
-  // NAV / TABS
-  // ══════════════════════════════════════
-  function setupNavForRole(role) {
-    const allowed = ROLE_TABS[role] || [];
-    ['admin','checkin','dashboard'].forEach(tab => {
-      const el = document.getElementById('tab-' + tab);
-      if (allowed.includes(tab)) {
-        el.classList.remove('hidden-tab');
-      } else {
-        el.classList.add('hidden-tab');
-      }
-    });
-  }
+function setSyncBar(type, msg) {
+  const el = document.getElementById('admin-sync-bar');
+  el.className = `sync-bar ${type}`;
+  el.innerHTML = type === 'syncing'
+    ? `<div class="sync-spinner"></div><span>${msg}</span>`
+    : `<span>${msg}</span>`;
+}
 
-  function switchTab(tab) {
-    const allowed = ROLE_TABS[currentUser?.role] || [];
-    if (!allowed.includes(tab)) { toast('Access denied for your role'); return; }
+function updateScriptUrl() {
+  const url = document.getElementById('scriptUrl').value.trim();
+  if (!url) return;
+  scriptUrl = url;
+  localStorage.setItem('sb_scriptUrl', url);
+  toast('✓ URL updated');
+}
 
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.nav-tab').forEach(t => t.classList.remove('active'));
+// ══════════════════════════════════════
+// ADMIN — LINKS
+// ══════════════════════════════════════
+function generateLinks() {
+  if (teamData.members.length === 0) { toast('Add team members first'); return; }
+  const base = window.location.href.split('?')[0];
+  document.getElementById('links-list').innerHTML = teamData.members.map(m => {
+    const link = `${base}?user=${encodeURIComponent(m.id)}`;
+    return `
+      <div style="margin-bottom:10px">
+        <div style="font-size:0.8rem;font-weight:600;color:var(--text-mid);margin-bottom:5px">
+          ${m.name} <span style="font-weight:400;color:var(--text-muted);font-family:'IBM Plex Mono',monospace;font-size:0.72rem">${m.role}</span>
+        </div>
+        <div class="link-box">
+          <div class="link-text">${link}</div>
+          <button class="btn btn-secondary btn-sm" onclick="copyLink('${link}')">Copy</button>
+        </div>
+      </div>`;
+  }).join('');
+  toast('Links generated');
+}
 
-    document.getElementById('page-' + tab).classList.add('active');
-    document.getElementById('tab-' + tab).classList.add('active');
+function copyLink(link) { navigator.clipboard.writeText(link); toast('Link copied'); }
+function copyScript()   { navigator.clipboard.writeText(APPS_SCRIPT_CODE); toast('Script copied'); }
 
-    if (tab === 'dashboard') loadDashboard();
-  }
+// ══════════════════════════════════════
+// CHECK-IN
+// ══════════════════════════════════════
+async function initCheckin() {
+  checkinState = { answers: [], questionIndex: 0 };
+  document.getElementById('complete-state').classList.add('hidden');
+  document.getElementById('chat-input-row').classList.remove('hidden');
+  document.getElementById('chat-messages').innerHTML = '';
+  document.getElementById('chat-greeting').textContent = `${currentUser.name}'s Daily Check-in`;
+  updateProgress();
 
-  function updateUserPill() {
-    if (!currentUser) return;
-    const initials = currentUser.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-    const roleLabel = { admin:'Admin', manager:'Manager', member:'Member' }[currentUser.role] || currentUser.role;
-    const roleClass = { admin:'role-pill-admin', manager:'role-pill-manager', member:'role-pill-member' }[currentUser.role];
-    document.getElementById('pill-avatar').style.background = currentUser.color;
-    document.getElementById('pill-avatar').textContent = initials;
-    document.getElementById('pill-name').textContent = currentUser.name.split(' ')[0];
-    document.getElementById('pill-role').textContent = roleLabel;
-    document.getElementById('pill-role').className = 'user-pill-role ' + roleClass;
-  }
+  // Check Sheets if already submitted today
+  try {
+    const data = await api({ method: 'GET', query: { action: 'getResponses', date: getTodayStr() } });
+    todayResponses = data.responses || [];
+    if (currentUser.role === 'admin') renderMembers();
+    const alreadyDone = todayResponses.some(r => r.email === currentUser.email);
 
-  // ══════════════════════════════════════
-  // ADMIN — MEMBERS
-  // ══════════════════════════════════════
-  function addMember() {
-    const name  = document.getElementById('memberName').value.trim();
-    const email = document.getElementById('memberEmail').value.trim();
-    const role  = document.getElementById('memberRole').value;
-    if (!name || !email) { toast('Please enter name and email'); return; }
-    if (state.members.find(m => m.email === email)) { toast('Member already exists'); return; }
-    state.members.push({ id: Date.now().toString(), name, email, role, color: COLORS[state.members.length % COLORS.length] });
-    document.getElementById('memberName').value = '';
-    document.getElementById('memberEmail').value = '';
-    saveState(); renderMembers(); toast('Member added');
-  }
-
-  function removeMember(id) {
-    if (id === currentUser?.id) { toast('Cannot remove yourself'); return; }
-    state.members = state.members.filter(m => m.id !== id);
-    saveState(); renderMembers(); toast('Member removed');
-  }
-
-  function clearCheckin(memberId) {
-    const member = state.members.find(m => m.id === memberId);
-    if (!member) return;
-    if (!confirm(`Clear today's check-in for ${member.name}? They will be able to resubmit.`)) return;
-    state.responses = state.responses.filter(r => !(r.email === member.email && isToday(r.timestamp)));
-    saveState(); renderMembers(); toast(`✓ Check-in cleared for ${member.name}`);
-  }
-
-  function changeRole(id, newRole) {
-    const m = state.members.find(m => m.id === id);
-    if (m) { m.role = newRole; saveState(); renderMembers(); toast(`Role updated to ${newRole}`); }
-  }
-
-  function renderMembers() {
-    const list = document.getElementById('member-list');
-    document.getElementById('member-count').textContent = state.members.length + ' member' + (state.members.length !== 1 ? 's' : '');
-    if (state.members.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">👥</div><div class="empty-text">No members yet.</div></div>`;
-      return;
-    }
-
-    list.innerHTML = state.members.map(m => {
-      const initials = m.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-      const responded = state.responses.some(r => r.email === m.email && isToday(r.timestamp));
-      return `
-        <div class="member-row">
-          <div class="member-info">
-            <div class="avatar" style="background:${m.color}">${initials}</div>
-            <div>
-              <div class="member-name">${m.name}</div>
-              <div class="member-email">${m.email}</div>
-            </div>
-          </div>
-          <div class="flex-row">
-            <select class="role-select ${m.role}" onchange="changeRole('${m.id}', this.value)"
-              style="background:${m.role==='admin'?'#e8eef8':m.role==='manager'?'#f3e8ff':'var(--success-bg)'}">
-              <option value="member"  ${m.role==='member'  ?'selected':''}>✏️ Member</option>
-              <option value="manager" ${m.role==='manager' ?'selected':''}>👀 Manager</option>
-              <option value="admin"   ${m.role==='admin'   ?'selected':''}>👑 Admin</option>
-            </select>
-            <span class="badge ${responded ? 'badge-done' : 'badge-pending'}">${responded ? '✓ Done' : 'Pending'}</span>
-            ${responded ? `<button class="btn btn-secondary btn-sm" onclick="clearCheckin('${m.id}')" title="Allow resubmission">↺ Clear</button>` : ''}
-            <button class="btn btn-danger btn-sm" onclick="removeMember('${m.id}')">Remove</button>
-          </div>
-        </div>`;
-    }).join('');
-  }
-
-  // ══════════════════════════════════════
-  // ADMIN — QUESTIONS
-  // ══════════════════════════════════════
-  function saveQuestions() {
-    state.questions = [
-      document.getElementById('q1').value,
-      document.getElementById('q2').value,
-      document.getElementById('q3').value
-    ];
-    saveState(); toast('Questions saved');
-  }
-
-  function loadQuestions() {
-    document.getElementById('q1').value = state.questions[0];
-    document.getElementById('q2').value = state.questions[1];
-    document.getElementById('q3').value = state.questions[2];
-  }
-
-  // ══════════════════════════════════════
-  // ADMIN — SHEET CONFIG
-  // ══════════════════════════════════════
-  function saveSheetConfig() {
-    state.sheetId   = document.getElementById('sheetId').value.trim();
-    state.scriptUrl = document.getElementById('scriptUrl').value.trim();
-    saveState(); updateSheetStatus(); toast('Configuration saved');
-  }
-
-  function updateSheetStatus() {
-    const dot = document.getElementById('sheet-dot');
-    const txt = document.getElementById('sheet-status-text');
-    if (state.scriptUrl) { dot.className = 'status-dot dot-green'; txt.textContent = 'Connected'; }
-    else { dot.className = 'status-dot dot-yellow'; txt.textContent = 'Not configured'; }
-  }
-
-  function loadSheetConfig() {
-    document.getElementById('sheetId').value  = state.sheetId || '';
-    document.getElementById('scriptUrl').value = state.scriptUrl || '';
-    updateSheetStatus();
-  }
-
-  async function testSheetConnection() {
-    if (!state.scriptUrl) { toast('Enter the Script URL first'); return; }
-    toast('Testing…');
-    try {
-      const res = await fetch(state.scriptUrl + '?test=1');
-      const data = await res.json();
-      if (data.status === 'ok') { toast('✓ Connected to Google Sheets'); document.getElementById('sheet-dot').className = 'status-dot dot-green'; }
-    } catch(e) { toast('Connection failed — check URL'); }
-  }
-
-  // ══════════════════════════════════════
-  // ADMIN — LINKS
-  // ══════════════════════════════════════
-  function generateLinks() {
-    if (state.members.length === 0) { toast('Add team members first'); return; }
-    const base = window.location.href.split('?')[0];
-    document.getElementById('links-list').innerHTML = state.members.map(m => {
-      const link = `${base}?user=${encodeURIComponent(m.id)}`;
-      return `
-        <div style="margin-bottom:10px">
-          <div style="font-size:0.8rem;font-weight:600;color:var(--text-mid);margin-bottom:5px">
-            ${m.name}
-            <span style="font-weight:400; color:var(--text-muted); font-family:'IBM Plex Mono',monospace; font-size:0.72rem; margin-left:6px">${m.role}</span>
-          </div>
-          <div class="link-box">
-            <div class="link-text">${link}</div>
-            <button class="btn btn-secondary btn-sm" onclick="copyLink('${link}')">Copy</button>
-          </div>
-        </div>`;
-    }).join('');
-    toast('Links generated');
-  }
-
-  function copyLink(link) { navigator.clipboard.writeText(link); toast('Link copied'); }
-  function copyScript()   { navigator.clipboard.writeText(document.getElementById('appsScriptCode').value); toast('Script copied'); }
-
-  // ══════════════════════════════════════
-  // CHECK-IN
-  // ══════════════════════════════════════
-  function initCheckin() {
-    checkinState = { answers: [], questionIndex: 0 };
-    document.getElementById('complete-state').classList.add('hidden');
-    document.getElementById('chat-input-row').classList.remove('hidden');
-    document.getElementById('chat-messages').innerHTML = '';
-    document.getElementById('chat-greeting').textContent = `${currentUser.name}'s Daily Check-In`;
-    updateProgress();
-
-    const alreadyDone = state.responses.some(r => r.email === currentUser.email && isToday(r.timestamp));
     if (alreadyDone) {
-      addBotMsg(`Hey ${currentUser.name}! You've already submitted your response today. ✓`);
+      addBotMsg(`Hey ${currentUser.name}! You've already completed your daily check-in today. ✓`);
       document.getElementById('chat-input-row').classList.add('hidden');
       document.getElementById('complete-state').classList.remove('hidden');
-      document.getElementById('sheet-save-status').textContent = '✓ Already submitted today';
+      document.getElementById('sheet-save-status').innerHTML = '<span style="color:var(--success)">✓ Already submitted today</span>';
+      if (currentUser.role === 'admin') renderMembers();
+      return;
+    }
+  } catch(e) {
+    // If can't check, allow submission anyway
+  }
+
+  setTimeout(() => {
+    addBotMsg(`Good ${getTimeOfDay()}, ${currentUser.name}. Time for your daily check-in — let's track your progress! 🚀`);
+    setTimeout(() => askQuestion(0), 1000);
+  }, 300);
+}
+
+function askQuestion(i) {
+  setTimeout(() => {
+    addBotMsg(`<strong>Question ${i+1} of 3</strong><br/>${teamData.questions[i]}`);
+    document.getElementById('chat-input').focus();
+  }, 300);
+}
+
+function sendAnswer() {
+  const input  = document.getElementById('chat-input');
+  const answer = input.value.trim();
+  if (!answer) return;
+  addUserMsg(answer);
+  input.value = '';
+  checkinState.answers.push(answer);
+  checkinState.questionIndex++;
+  updateProgress();
+
+  if (checkinState.questionIndex < teamData.questions.length) {
+    showTyping();
+    setTimeout(() => { hideTyping(); askQuestion(checkinState.questionIndex); }, 700);
+  } else {
+    showTyping();
+    setTimeout(() => { hideTyping(); completeCheckin(); }, 900);
+  }
+}
+
+async function completeCheckin() {
+  const response = {
+    id: Date.now().toString(),
+    name: currentUser.name, email: currentUser.email,
+    answers:   [...checkinState.answers],
+    questions: [...teamData.questions],
+    timestamp: new Date().toISOString()
+  };
+
+  addBotMsg('Great work! Saving your check-in to Google Sheets… 📊');
+  document.getElementById('chat-input-row').classList.add('hidden');
+  updateProgress();
+
+  const statusEl = document.getElementById('sheet-save-status');
+  statusEl.textContent = 'Saving to Google Sheets…';
+
+  try {
+    await api({ method: 'POST', body: { action: 'saveResponse', response } });
+    // Always refresh from Sheets so dashboard + admin are in sync
+    const fresh = await api({ method: 'GET', query: { action: 'getResponses', date: getTodayStr() } });
+    todayResponses = fresh.responses || [];
+    statusEl.innerHTML = '<span style="color:var(--success)">✓ Check-in recorded in Google Sheets</span>';
+    if (currentUser.role === 'admin') renderMembers();
+  } catch(e) {
+    statusEl.innerHTML = '<span style="color:var(--warn)">⚠ Save failed — check connection</span>';
+  }
+
+  setTimeout(() => document.getElementById('complete-state').classList.remove('hidden'), 600);
+}
+
+function updateProgress() {
+  const pct = Math.min((checkinState.questionIndex / teamData.questions.length) * 100, 100);
+  document.getElementById('progress-fill').style.width = pct + '%';
+  document.getElementById('progress-label').textContent = `${checkinState.questionIndex} / ${teamData.questions.length}`;
+}
+
+function addBotMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const d = document.createElement('div'); d.className = 'msg msg-bot';
+  d.innerHTML = `<div class="msg-sender">Daily Dash</div><div class="bubble">${text}</div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function addUserMsg(text) {
+  const msgs = document.getElementById('chat-messages');
+  const d = document.createElement('div'); d.className = 'msg msg-user';
+  d.innerHTML = `<div class="msg-sender">You</div><div class="bubble">${text}</div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function showTyping() {
+  const msgs = document.getElementById('chat-messages');
+  const d = document.createElement('div'); d.id = 'typing-wrap'; d.className = 'typing-wrap';
+  d.innerHTML = `<div class="msg-sender">Daily Dash</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
+  msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
+}
+
+function hideTyping() { const t = document.getElementById('typing-wrap'); if (t) t.remove(); }
+function resetCheckin() { initCheckin(); }
+
+// ══════════════════════════════════════
+// DASHBOARD — reads from Sheets
+// ══════════════════════════════════════
+async function loadDashboard() {
+  const list    = document.getElementById('responses-list');
+  const loading = document.getElementById('dashboard-loading');
+  loading.classList.remove('hidden');
+  list.innerHTML = '';
+
+  try {
+    const data = await api({ method: 'GET', query: { action: 'getResponses', date: getTodayStr() } });
+    todayResponses = data.responses || [];
+    loading.classList.add('hidden');
+
+    document.getElementById('stat-total').textContent   = todayResponses.length;
+    document.getElementById('stat-team').textContent    = teamData.members.length;
+    document.getElementById('stat-pending').textContent = Math.max(0, teamData.members.length - todayResponses.length);
+
+    if (todayResponses.length === 0) {
+      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No check-ins recorded today. Share links with your team!</div></div>`;
       return;
     }
 
-    setTimeout(() => {
-      addBotMsg(`Good ${getTimeOfDay()}, ${currentUser.name}. Ready for your today's check-in?`);
-      setTimeout(() => askQuestion(0), 1000);
-    }, 300);
-  }
-
-  function askQuestion(i) {
-    setTimeout(() => {
-      addBotMsg(`<strong>Question ${i+1} of 3</strong><br/>${state.questions[i]}`);
-      document.getElementById('chat-input').focus();
-    }, 300);
-  }
-
-  function sendAnswer() {
-    const input = document.getElementById('chat-input');
-    const answer = input.value.trim();
-    if (!answer) return;
-    addUserMsg(answer);
-    input.value = '';
-    checkinState.answers.push(answer);
-    checkinState.questionIndex++;
-    updateProgress();
-    if (checkinState.questionIndex < state.questions.length) {
-      showTyping();
-      setTimeout(() => { hideTyping(); askQuestion(checkinState.questionIndex); }, 700);
-    } else {
-      showTyping();
-      setTimeout(() => { hideTyping(); completeCheckin(); }, 900);
-    }
-  }
-
-  function completeCheckin() {
-    const response = {
-      id: Date.now().toString(),
-      name: currentUser.name, email: currentUser.email,
-      answers: [...checkinState.answers],
-      questions: [...state.questions],
-      timestamp: new Date().toISOString()
-    };
-    state.responses.push(response); saveState();
-    addBotMsg('Thank you. Your responses have been recorded. Have a productive day! 🎉');
-    document.getElementById('chat-input-row').classList.add('hidden');
-    updateProgress();
-    setTimeout(() => { document.getElementById('complete-state').classList.remove('hidden'); sendToSheets(response); }, 900);
-  }
-
-  async function sendToSheets(response) {
-    const el = document.getElementById('sheet-save-status');
-    if (!state.scriptUrl) { el.textContent = '⚠ Sheets not configured — saved locally'; return; }
-    el.textContent = 'Saving to Google Sheets…';
-    try {
-      await fetch(state.scriptUrl, { method:'POST', mode:'no-cors', headers:{'Content-Type':'application/json'}, body:JSON.stringify(response) });
-      el.innerHTML = '<span style="color:var(--success)">✓ Saved to Google Sheets</span>';
-    } catch(e) {
-      el.innerHTML = '<span style="color:var(--warn)">⚠ Sheets save failed — saved locally</span>';
-    }
-  }
-
-  function updateProgress() {
-    const pct = Math.min((checkinState.questionIndex / state.questions.length) * 100, 100);
-    document.getElementById('progress-fill').style.width = pct + '%';
-    document.getElementById('progress-label').textContent = `${checkinState.questionIndex} / ${state.questions.length}`;
-  }
-
-  function addBotMsg(text) {
-    const msgs = document.getElementById('chat-messages');
-    const d = document.createElement('div');
-    d.className = 'msg msg-bot';
-    d.innerHTML = `<div class="msg-sender">DailyDash</div><div class="bubble">${text}</div>`;
-    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function addUserMsg(text) {
-    const msgs = document.getElementById('chat-messages');
-    const d = document.createElement('div');
-    d.className = 'msg msg-user';
-    d.innerHTML = `<div class="msg-sender">You</div><div class="bubble">${text}</div>`;
-    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function showTyping() {
-    const msgs = document.getElementById('chat-messages');
-    const d = document.createElement('div');
-    d.id = 'typing-wrap'; d.className = 'typing-wrap';
-    d.innerHTML = `<div class="msg-sender">DailyDash</div><div class="typing-bubble"><div class="typing-dot"></div><div class="typing-dot"></div><div class="typing-dot"></div></div>`;
-    msgs.appendChild(d); msgs.scrollTop = msgs.scrollHeight;
-  }
-
-  function hideTyping() { const t = document.getElementById('typing-wrap'); if (t) t.remove(); }
-
-  function resetCheckin() { initCheckin(); }
-
-  // ══════════════════════════════════════
-  // DASHBOARD
-  // ══════════════════════════════════════
-  function loadDashboard() {
-    const today = state.responses.filter(r => isToday(r.timestamp));
-    document.getElementById('stat-total').textContent   = today.length;
-    document.getElementById('stat-team').textContent    = state.members.length;
-    document.getElementById('stat-pending').textContent = Math.max(0, state.members.length - today.length);
-    const list = document.getElementById('responses-list');
-    if (today.length === 0) {
-      list.innerHTML = `<div class="empty-state"><div class="empty-icon">📋</div><div class="empty-text">No responses yet today.</div></div>`;
-      return;
-    }
-    list.innerHTML = today.map(r => {
-      const member = state.members.find(m => m.email === r.email);
-      const color  = member?.color || '#1a56a0';
+    list.innerHTML = todayResponses.map(r => {
+      const member   = teamData.members.find(m => m.email === r.email);
+      const color    = member?.color || '#1a56a0';
       const initials = r.name.split(' ').map(n=>n[0]).join('').toUpperCase().slice(0,2);
-      const time     = new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+      const time     = r.timestamp ? new Date(r.timestamp).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'}) : '—';
       return `
         <div class="response-card">
           <div class="response-meta">
             <div class="flex-row">
               <div class="avatar" style="background:${color}">${initials}</div>
-              <div>
-                <div class="response-name">${r.name}</div>
-                <div class="response-email">${r.email}</div>
-              </div>
+              <div><div class="response-name">${r.name}</div><div class="response-email">${r.email}</div></div>
             </div>
             <div style="text-align:right">
               <span class="badge badge-done">✓ Submitted</span>
@@ -1409,56 +1336,50 @@ function doGet(e) {
           </div>
         </div>`;
     }).join('');
+
+  } catch(e) {
+    loading.classList.add('hidden');
+    list.innerHTML = `<div class="empty-state"><div class="empty-icon">⚠</div><div class="empty-text">Failed to load check-in records.<br/>Check your Sheets connection.</div></div>`;
   }
+}
 
-  function exportCSV() {
-    const today = state.responses.filter(r => isToday(r.timestamp));
-    if (!today.length) { toast('No responses to export'); return; }
-    const headers = ['Name','Email','Time','Q1','Q2','Q3'];
-    const rows = today.map(r => [r.name, r.email, new Date(r.timestamp).toLocaleTimeString(), r.answers[0]||'', r.answers[1]||'', r.answers[2]||'']);
-    const csv = [headers,...rows].map(row => row.map(c=>`"${c}"`).join(',')).join('\n');
-    const a = document.createElement('a');
-    a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
-    a.download = `Check-ins-${new Date().toISOString().slice(0,10)}.csv`;
-    a.click(); toast('CSV exported');
-  }
+function exportCSV() {
+  if (!todayResponses.length) { toast('No responses to export'); return; }
+  const headers = ['Name','Email','Time','Q1','Q2','Q3'];
+  const rows = todayResponses.map(r => [r.name, r.email, r.timestamp ? new Date(r.timestamp).toLocaleTimeString() : '', r.answers[0]||'', r.answers[1]||'', r.answers[2]||'']);
+  const csv = [headers,...rows].map(row => row.map(c=>`"${c}"`).join(',')).join('\n');
+  const a = document.createElement('a');
+  a.href = URL.createObjectURL(new Blob([csv],{type:'text/csv'}));
+  a.download = `dailydash-${new Date().toISOString().slice(0,10)}.csv`;
+  a.click(); toast('CSV exported');
+}
 
-  // ══════════════════════════════════════
-  // UTILS
-  // ══════════════════════════════════════
-  function isToday(ts) {
-    const d = new Date(ts), n = new Date();
-    return d.getDate()===n.getDate() && d.getMonth()===n.getMonth() && d.getFullYear()===n.getFullYear();
-  }
+// ══════════════════════════════════════
+// UTILS
+// ══════════════════════════════════════
+function getTodayStr() {
+  const d = new Date();
+  const y = d.getFullYear();
+  const m = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${y}-${m}-${day}`;
+}
 
-  function getTimeOfDay() {
-    const h = new Date().getHours();
-    return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
-  }
+function getTimeOfDay() {
+  const h = new Date().getHours();
+  return h < 12 ? 'morning' : h < 17 ? 'afternoon' : 'evening';
+}
 
-  function toast(msg) {
-    const el = document.getElementById('toast');
-    el.textContent = msg; el.classList.add('show');
-    setTimeout(() => el.classList.remove('show'), 2800);
-  }
+function toast(msg) {
+  const el = document.getElementById('toast');
+  el.textContent = msg; el.classList.add('show');
+  setTimeout(() => el.classList.remove('show'), 2800);
+}
 
-  // ══════════════════════════════════════
-  // INIT
-  // ══════════════════════════════════════
-  loadState();
-  renderWhoScreen();
-
-  // Handle direct link with ?user=id
-  const urlUser = new URLSearchParams(window.location.search).get('user');
-  if (urlUser) {
-    const member = state.members.find(m => m.id === urlUser);
-    if (member) { currentUser = member; enterApp(); }
-  }
-
-  // Render admin fields if already on admin
-  loadQuestions();
-  loadSheetConfig();
-  renderMembers();
+// ══════════════════════════════════════
+// START
+// ══════════════════════════════════════
+init();
 </script>
 </body>
 </html>
